@@ -1,0 +1,1450 @@
+<!doctype html>
+<html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pro Editor 2D</title>
+<meta name="app-version" content="1.0.0">
+<style>:root{--bg:#1b1c20;--p1:#25262b;--p2:#2d2e34;--p3:#383a42;--ln:#41434c;--tx:#e8e9ee;--mu:#9a9ca8;--ac:#4c8dff;--ac2:#3a74da;--ok:#2fbf71;--no:#ef4f5f}
+*{box-sizing:border-box}html,body{height:100%;margin:0;background:var(--bg);color:var(--tx);font:13px/1.35 "Segoe UI",system-ui,Arial,sans-serif;overflow:hidden;user-select:none}
+button,select,input,textarea{font:inherit;color:inherit}
+button{background:var(--p3);border:1px solid var(--ln);border-radius:6px;padding:5px 10px;cursor:pointer}
+button:hover{background:#44464f}button.pri{background:var(--ac);border-color:var(--ac2);color:#fff}button.pri:hover{background:var(--ac2)}
+button:disabled{opacity:.4;cursor:default}button.on{background:var(--ac);border-color:var(--ac2)}
+input[type=text],input[type=number],select,textarea{background:#17181b;border:1px solid var(--ln);border-radius:5px;padding:4px 6px;min-width:0}
+input[type=color]{width:30px;height:26px;padding:0;border:1px solid var(--ln);border-radius:5px;background:none;cursor:pointer}
+input[type=range]{accent-color:var(--ac);width:100%}
+#app{display:flex;flex-direction:column;height:100%}
+#top{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--p1);border-bottom:1px solid var(--ln);flex-wrap:wrap}
+#top .brand{font-weight:700;letter-spacing:.3px;margin-right:8px}#top .brand b{color:var(--ac)}
+#top .sp{flex:1}#top .sep{width:1px;height:22px;background:var(--ln);margin:0 4px}
+#opts{display:flex;align-items:center;gap:12px;padding:5px 10px;background:var(--p2);border-bottom:1px solid var(--ln);min-height:38px;flex-wrap:wrap}
+#opts .og{display:none;align-items:center;gap:8px}#opts label{color:var(--mu);display:flex;align-items:center;gap:5px}
+#opts input[type=range]{width:110px}#opts input[type=number]{width:62px}
+#main{flex:1;display:flex;min-height:0}
+#tools{width:50px;background:var(--p1);border-right:1px solid var(--ln);display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0}
+#tools button{width:38px;height:38px;padding:0;font-size:17px;display:flex;align-items:center;justify-content:center}
+#tools .cols{position:relative;width:38px;height:38px;margin-top:8px}
+#tools .cols input{position:absolute;width:24px;height:24px}#tools .cols .f{left:0;top:0;z-index:2}#tools .cols .b{right:0;bottom:0}
+#stage{flex:1;position:relative;background:#121316;min-width:0;overflow:hidden;touch-action:none}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block}
+#side{width:290px;background:var(--p1);border-left:1px solid var(--ln);display:flex;flex-direction:column;min-height:0}
+#props{overflow:auto;padding:8px 10px;border-bottom:1px solid var(--ln);max-height:48%}
+#props h4,#layersHead{margin:0 0 6px;font-size:12px;color:var(--mu);text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+.row{display:flex;align-items:center;gap:6px;margin:5px 0}.row>label{width:78px;color:var(--mu);flex:none}.row>*:not(label){flex:1;min-width:0}
+.row input[type=color]{flex:none}.row.btns button{flex:1;padding:4px 2px}
+textarea#tText{width:100%;height:60px;resize:vertical;user-select:text}
+#layersWrap{flex:1;display:flex;flex-direction:column;min-height:0;padding:8px 10px}
+#layersHead{display:flex;align-items:center;justify-content:space-between}
+#layers{flex:1;overflow:auto;border:1px solid var(--ln);border-radius:6px;background:#17181b}
+.ly{display:flex;align-items:center;gap:6px;padding:4px 6px;border-bottom:1px solid #232429;cursor:pointer}
+.ly.sel{background:#27406e}.ly canvas{width:38px;height:38px;border-radius:4px;background:repeating-conic-gradient(#555 0 25%,#777 0 50%) 0 0/10px 10px;flex:none}
+.ly .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ly .ic{background:none;border:0;padding:2px 4px;font-size:14px;opacity:.85}.ly.hid .nm{opacity:.45}
+#lyBtns{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}#lyBtns button{flex:1;padding:4px 0;min-width:34px}
+#status{display:flex;gap:16px;padding:4px 10px;background:var(--p1);border-top:1px solid var(--ln);color:var(--mu);font-size:12px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.62);display:none;align-items:center;justify-content:center;z-index:50}
+.modal.show{display:flex}.box{background:var(--p2);border:1px solid var(--ln);border-radius:12px;padding:16px 18px;min-width:340px;max-width:94vw;max-height:94vh;overflow:auto;box-shadow:0 20px 60px #0009}
+.box h3{margin:0 0 10px;font-size:16px}.box .ft{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}.hint{color:var(--mu);font-size:12px;margin-top:6px}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}.presets button{padding:4px 8px}
+#welcome .box{text-align:center;min-width:420px}#welcome .big{display:flex;gap:10px;justify-content:center;margin:14px 0}#welcome .big button{padding:12px 18px;font-size:14px}
+#toast{position:fixed;bottom:34px;left:50%;transform:translateX(-50%);background:#000c;border:1px solid var(--ln);padding:8px 14px;border-radius:8px;z-index:99;display:none}
+#toast.err{border-color:var(--no)}
+/* BGX */
+#bx .box{width:min(1280px,98vw);height:min(820px,96vh);display:flex;flex-direction:column;padding:10px}
+#bx .bxm{flex:1;display:flex;gap:10px;min-height:0}
+#bxTools{display:flex;flex-direction:column;gap:5px;width:84px}#bxTools button{padding:7px 2px;font-size:12px}
+#bxStage{flex:1;position:relative;background:#101114;border-radius:8px;overflow:hidden;min-width:0}#bxCv{position:absolute;inset:0;width:100%;height:100%}
+#bxSide{width:290px;overflow:auto;padding-right:4px}#bxSide .row>label{width:92px}
+.sw{display:inline-flex;align-items:center;gap:5px;margin:3px 6px 3px 0;padding:2px 6px 2px 3px;border:1px solid var(--ln);border-radius:6px;cursor:pointer;font-size:11px}
+.sw i{width:18px;height:18px;border-radius:4px;border:1px solid #0006;display:inline-block}.sw.off{opacity:.4;text-decoration:line-through}
+#bxMsg{position:absolute;left:10px;top:10px;background:#000b;padding:5px 10px;border-radius:6px;display:none;font-size:12px}
+.prog{height:8px;background:#17181b;border-radius:4px;overflow:hidden;margin-top:8px}.prog i{display:block;height:100%;width:0;background:var(--ac)}
+</style></head><body>
+<div id="app">
+<header id="top">
+  <span class="brand">Pro <b>Editor 2D</b></span>
+  <button id="bNew">Baru</button><button id="bOpen">Buka…</button><button id="bSave">Simpan Projek</button><button id="bExport" class="pri">Eksport</button>
+  <span class="sep"></span>
+  <button id="bUndo" title="Ctrl+Z">↶</button><button id="bRedo" title="Ctrl+Y">↷</button>
+  <span class="sep"></span>
+  <button id="bBg" class="pri" title="Buang latar belakang pintar">✂ Buang Latar</button>
+  <button id="bEnh" title="Besarkan &amp; tajamkan">✨ Tingkatkan Kualiti</button>
+  <button id="bAdj">🎚 Laras</button>
+  <button id="bTrim" title="Potong ruang lutsinar pada lapisan">⌗ Trim</button>
+  <span class="sp"></span>
+  <button id="bUpd" style="display:none" title="Kemas kini app">⟳ Kemas kini</button><button id="bZout">−</button><span id="zlbl" style="min-width:48px;text-align:center">100%</span><button id="bZin">+</button><button id="bFit">Muat</button><button id="bZ100">100%</button>
+</header>
+<div id="opts">
+  <div class="og" data-for="brush eraser"><label>Saiz <input type="range" id="oSize" min="1" max="400" value="24"><input type="number" id="oSizeN" min="1" max="2000" value="24"></label>
+    <label>Kekerasan <input type="range" id="oHard" min="0" max="100" value="80"></label><label>Aliran <input type="range" id="oFlow" min="5" max="100" value="100"></label></div>
+  <div class="og" data-for="shape"><label>Bentuk <select id="oShape"><option value="rect">Segi empat</option><option value="rrect">Segi empat bulat</option><option value="ellipse">Elips</option><option value="line">Garisan</option></select></label>
+    <label>Isi <input type="color" id="oSFill" value="#e53935"></label><label>Garis <input type="color" id="oSStroke" value="#000000"></label><label>Tebal <input type="number" id="oSW" value="0" min="0" max="200"></label></div>
+  <div class="og" data-for="text"><span style="color:var(--mu)">Klik pada kanvas untuk menambah teks, kemudian edit di panel kanan.</span></div>
+  <div class="og" data-for="move"><span style="color:var(--mu)">Seret = alih · pemegang sudut = saiz (Shift = bebas) · bulatan atas = putar (Shift = 15°) · anak panah = nudge · dwiklik teks = edit</span></div>
+  <div class="og" data-for="hand"><span style="color:var(--mu)">Seret untuk menggerakkan paparan. Roda tetikus = zum. Tahan Space untuk sementara.</span></div>
+  <div class="og" data-for="eyedrop"><span style="color:var(--mu)">Klik = warna depan · Alt+klik = warna belakang</span></div>
+</div>
+<div id="main">
+  <nav id="tools">
+    <button data-tool="move" title="Alih (V)">⤧</button><button data-tool="hand" title="Tangan (H)">✋</button>
+    <button data-tool="brush" title="Berus (B)">🖌</button><button data-tool="eraser" title="Pemadam (E)">⌫</button>
+    <button data-tool="text" title="Teks (T)">T</button><button data-tool="shape" title="Bentuk (U)">▭</button><button data-tool="eyedrop" title="Pemilih warna (I)">💧</button>
+    <div class="cols"><input type="color" class="b" id="cBk" value="#ffffff"><input type="color" class="f" id="cFg" value="#000000"></div>
+    <button id="bSwap" title="Tukar warna (X)" style="width:30px;height:24px;font-size:12px;margin-top:2px">⇄</button>
+  </nav>
+  <div id="stage"><canvas id="cv"></canvas></div>
+  <aside id="side">
+    <div id="props"></div>
+    <div id="layersWrap"><div id="layersHead"><span>Lapisan</span><span><button id="lyAddImg" title="Tambah imej…">＋🖼</button> <button id="lyAddNew" title="Lapisan kosong">＋</button></span></div>
+      <div id="layers"></div>
+      <div id="lyBtns"><button id="lyUp" title="Naik">▲</button><button id="lyDown" title="Turun">▼</button><button id="lyDup" title="Pendua (Ctrl+J)">⧉</button><button id="lyMerge" title="Gabung ke bawah">⤓</button><button id="lyFlipH" title="Balik mendatar">⇋</button><button id="lyDel" title="Padam (Del)">🗑</button></div>
+    </div>
+  </aside>
+</div>
+<footer id="status"><span id="sDoc">Tiada dokumen</span><span id="sPos"></span><span id="sSel"></span><span style="flex:1"></span><span id="sSave"></span></footer>
+</div>
+<input type="file" id="fileIn" accept="image/*,.json,.e2d" multiple hidden><input type="file" id="fontIn" accept=".ttf,.otf,.woff,.woff2" hidden>
+
+<div class="modal show" id="welcome"><div class="box"><h3>Pro Editor 2D</h3>
+  <div style="color:var(--mu)">Editor imej 2D gaya Photoshop — lapisan, teks, berus, buang latar pintar, tingkatkan kualiti. Semua berjalan dalam pelayar, tanpa muat naik.</div>
+  <div class="big"><button class="pri" id="wNew">Dokumen baru</button><button id="wOpen">Buka gambar…</button><button id="wResume" style="display:none">Sambung kerja terakhir</button></div>
+  <div class="hint">Tip: seret &amp; lepas gambar ke mana-mana, atau tampal (Ctrl+V).</div></div></div>
+
+<div class="modal" id="mNew"><div class="box"><h3>Dokumen baru</h3>
+  <div class="presets" id="npPresets"></div>
+  <div class="row"><label>Lebar</label><input type="number" id="npW" value="2480"><label style="width:auto">Tinggi</label><input type="number" id="npH" value="3508"></div>
+  <div class="row"><label>Unit</label><select id="npU"><option value="px">piksel</option><option value="cm">cm</option><option value="mm">mm</option><option value="in">inci</option></select><label style="width:auto">DPI</label><input type="number" id="npDpi" value="300"></div>
+  <div class="row"><label>Latar</label><select id="npBg"><option value="#ffffff">Putih</option><option value="transparent">Lutsinar</option><option value="#000000">Hitam</option></select></div>
+  <div class="hint" id="npInfo"></div><div class="ft"><button data-close>Batal</button><button class="pri" id="npOk">Cipta</button></div></div></div>
+
+<div class="modal" id="mCanvas"><div class="box"><h3>Saiz kanvas</h3>
+  <div class="row"><label>Lebar (px)</label><input type="number" id="csW"></div><div class="row"><label>Tinggi (px)</label><input type="number" id="csH"></div>
+  <div class="row"><label>DPI</label><input type="number" id="csD"></div>
+  <div class="row"><label>Kandungan</label><select id="csA"><option value="c">Letak di tengah</option><option value="s">Skala semua lapisan (muat)</option><option value="k">Kekal kedudukan</option></select></div>
+  <div class="ft"><button data-close>Batal</button><button class="pri" id="csOk">Guna</button></div></div></div>
+
+<div class="modal" id="mExp"><div class="box"><h3>Eksport</h3>
+  <div class="row"><label>Format</label><select id="exF"><option value="png">PNG (lutsinar)</option><option value="jpg">JPG</option><option value="webp">WebP</option></select></div>
+  <div class="row" id="exQr"><label>Kualiti</label><input type="range" id="exQ" min="50" max="100" value="95"><span id="exQv" style="width:30px">95</span></div>
+  <div class="row"><label>Skala</label><select id="exS"><option value="0.5">50%</option><option value="1" selected>100%</option><option value="2">200%</option><option value="3">300%</option></select></div>
+  <div class="row"><label>Latar</label><select id="exBg"><option value="doc">Ikut dokumen</option><option value="white">Paksa putih</option></select></div>
+  <div class="hint" id="exInfo"></div><div class="ft"><button data-close>Batal</button><button class="pri" id="exOk">Muat turun</button></div></div></div>
+
+<div class="modal" id="mAdj"><div class="box" style="min-width:360px"><h3>Laras imej</h3>
+  <div class="row"><label>Kecerahan</label><input type="range" id="aBr" min="-100" max="100" value="0"></div>
+  <div class="row"><label>Kontras</label><input type="range" id="aCo" min="-100" max="100" value="0"></div>
+  <div class="row"><label>Ketepuan</label><input type="range" id="aSa" min="-100" max="100" value="0"></div>
+  <div class="row"><label>Suhu warna</label><input type="range" id="aTe" min="-100" max="100" value="0"></div>
+  <div class="row"><label>Tajam</label><input type="range" id="aSh" min="0" max="200" value="0"></div>
+  <div class="row"><label>Kabur</label><input type="range" id="aBl" min="0" max="30" value="0"></div>
+  <div class="row btns"><button id="aAuto">Auto-kontras</button><button id="aGray">Hitam putih</button><button id="aInv">Songsang</button><button id="aReset">Set semula</button></div>
+  <div class="ft"><button id="aCancel">Batal</button><button class="pri" id="aOk">Guna</button></div></div></div>
+
+<div class="modal" id="mEnh"><div class="box" style="width:560px"><h3>Tingkatkan Kualiti</h3>
+  <div class="row"><label>Kaedah</label><select id="eMode"><option value="classic">Klasik (Lanczos + tajam) — tanpa muat turun</option><option value="srFast" disabled>AI cepat (Real-ESRGAN) — model tiada</option><option value="srHq" disabled>AI kualiti tinggi — model tiada</option></select></div>
+  <div class="row"><label>Besarkan</label><select id="eScale"><option>1</option><option>1.5</option><option selected>2</option><option>3</option><option>4</option></select></div>
+  <div class="row"><label>Tajam</label><input type="range" id="eSharp" min="0" max="200" value="70"></div>
+  <div class="row"><label>Jejari</label><input type="range" id="eRad" min="5" max="30" value="12"></div>
+  <div class="row"><label>Kurang hingar</label><input type="range" id="eDn" min="0" max="100" value="0"></div>
+  <div class="row"><label>Tepi lutsinar</label><input type="range" id="eCr" min="0" max="100" value="0"></div>
+  <div style="display:flex;gap:10px;margin-top:8px"><div style="flex:1;text-align:center;color:var(--mu)">Asal (kawasan tengah)<br><canvas id="ePa" width="240" height="240" style="width:240px;height:240px;background:#222;border-radius:6px"></canvas></div><div style="flex:1;text-align:center;color:var(--mu)">Hasil<br><canvas id="ePb" width="240" height="240" style="width:240px;height:240px;background:#222;border-radius:6px"></canvas></div></div>
+  <div class="hint" id="eInfo"></div><div class="prog" id="eProg" style="display:none"><i></i></div>
+  <div class="ft"><button id="eCancel">Batal</button><button class="pri" id="eOk">Guna</button></div></div></div>
+
+<div class="modal" id="bx"><div class="box">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><h3 style="margin:0;flex:1">Buang Latar Belakang Pintar</h3><span class="hint" style="margin:0">Roda = zum · Space/klik tengah = gerak</span></div>
+  <div class="bxm">
+    <div id="bxTools">
+      <button data-bt="fg" class="on" title="Berus hijau: kawasan ini ialah SUBJEK (kekal)">🟢 Simpan</button>
+      <button data-bt="bg" title="Berus merah: kawasan ini ialah LATAR (buang)">🔴 Buang</button>
+      <button data-bt="erase" title="Padam tanda">◌ Padam tanda</button>
+      <button data-bt="pick" title="Klik latar untuk tambah warna latar">💧 Warna latar</button>
+      <button data-bt="pan">✋ Gerak</button>
+      <label style="font-size:11px;color:var(--mu);margin-top:6px">Saiz berus<input type="range" id="bxBr" min="2" max="60" value="14"></label>
+      <button id="bxClear">Kosongkan tanda</button>
+    </div>
+    <div id="bxStage"><canvas id="bxCv"></canvas><div id="bxMsg"></div></div>
+    <div id="bxSide">
+      <div class="presets"><button data-pre="foto">Foto / Orang</button><button data-pre="produk">Produk / Logo</button><button data-pre="grafik">Grafik tepi tajam</button></div>
+      <div class="row"><label>Toleransi latar</label><input type="range" id="bxTol" min="3" max="30" value="7"></div>
+      <div class="row"><label>Lindungi subjek</label><input type="range" id="bxPro" min="60" max="180" value="100"></div>
+      <div class="row"><label>Tepi lembut</label><input type="range" id="bxSoft" min="0" max="100" value="50"></div>
+      <div class="row"><label>Kikis tepi</label><input type="range" id="bxShr" min="0" max="6" value="0"></div>
+      <div class="row"><label>Lubang dalam</label><select id="bxHol"><option value="keep">Kekalkan (selamat)</option><option value="remove">Buang jika warna latar</option></select></div>
+      <div class="row"><label></label><label style="width:auto;color:var(--tx)"><input type="checkbox" id="bxLg"> Satu objek terbesar sahaja</label></div>
+      <div class="row"><label></label><label style="width:auto;color:var(--tx)"><input type="checkbox" id="bxHard"> Tepi tajam (tanpa lembut)</label></div>
+      <div class="hint" style="margin:8px 0 2px">Warna latar dikesan (klik untuk hidup/mati):</div><div id="bxSw"></div>
+      <div class="row"><label>Pratonton</label><select id="bxPv"><option value="chk">Petak lutsinar</option><option value="white">Putih</option><option value="black">Hitam</option><option value="green">Hijau</option><option value="mask">Topeng (hitam/putih)</option></select></div>
+      <div class="row btns"><button id="bxAi">🤖 AI bantu</button><button id="bxOrig">Tahan: asal</button></div>
+      <div class="hint" id="bxInfo">Auto berjalan sendiri. Jika ada bahagian subjek terpotong: lukis berus <b>hijau</b> di situ. Jika latar masih tinggal: berus <b>merah</b>.</div>
+      <label style="display:block;margin-top:8px;color:var(--mu)"><input type="checkbox" id="bxKeep"> Simpan salinan asal (tersembunyi)</label>
+    </div>
+  </div>
+  <div class="ft"><button id="bxCancel">Batal</button><button class="pri" id="bxOk">Guna pada lapisan</button></div>
+</div></div>
+<div class="modal" id="mUpd"><div class="box" style="min-width:420px"><h3>Kemas kini app</h3>
+  <div id="uInfo" style="line-height:1.7"></div>
+  <div class="hint">Kemas kini = satu fail <b>index.html</b> baharu yang anda terima. Pilih ia di sini; app dimulakan semula dengan versi baharu. Projek &amp; kerja anda tidak terjejas (disimpan berasingan).</div>
+  <div class="ft" style="justify-content:space-between"><button id="uRevert">Kembali ke versi asal</button><span style="display:flex;gap:8px"><button data-close>Tutup</button><button class="pri" id="uApply">Pilih fail kemas kini…</button></span></div></div></div>
+<div id="toast"></div>
+
+<script>
+// =====================================================================
+// ===== BGX — Enjin Buang Latar Pintar (tanpa AI luaran; offline sepenuhnya) =====
+// Idea: latar hanya dibuang jika (a) berwarna seperti tepi imej DAN (b) bersambung dengan tepi,
+//       kawasan dalam subjek yang serupa warna latar DILINDUNGI oleh tepi (geodesic) — bukan tolerance warna sahaja.
+// Langkah: Lab -> model warna latar (k-means tepi) -> biji yakin (latar/subjek) + tanda pengguna
+//          -> jarak geodesik (kos = jarak + γ·ΔE) -> label -> bersih (lubang, bintik)
+//          -> trimap -> guided filter (warna) -> alfa lembut -> nyahcemar warna tepi.
+// =====================================================================
+const BGXC = (() => {
+  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+  const SRGB = new Float32Array(256);
+  for (let i = 0; i < 256; i++) { const c = i / 255; SRGB[i] = c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+
+  // ---------------- warna
+  function toLab(d, n) {
+    const out = new Float32Array(n * 3), xn = 0.95047, yn = 1, zn = 1.08883, e = 216 / 24389, k = 24389 / 27;
+    const f = t => (t > e ? Math.cbrt(t) : (k * t + 16) / 116);
+    for (let i = 0, p = 0, o = 0; i < n; i++, p += 4, o += 3) {
+      const r = SRGB[d[p]], g = SRGB[d[p + 1]], b = SRGB[d[p + 2]];
+      const X = (0.4124564 * r + 0.3575761 * g + 0.1804375 * b) / xn, Y = (0.2126729 * r + 0.7151522 * g + 0.0721750 * b) / yn, Z = (0.0193339 * r + 0.1191920 * g + 0.9503041 * b) / zn;
+      const fx = f(X), fy = f(Y), fz = f(Z);
+      out[o] = 116 * fy - 16; out[o + 1] = 500 * (fx - fy); out[o + 2] = 200 * (fy - fz);
+    }
+    return out;
+  }
+  const dE = (lab, i, c) => { const a = lab[i * 3] - c[0], b = lab[i * 3 + 1] - c[1], d = lab[i * 3 + 2] - c[2]; return Math.sqrt(a * a + b * b + d * d); };
+
+  // ---------------- model warna latar daripada piksel tepi
+  function borderPixels(d, w, h, band) {
+    const idx = [];
+    const add = (x, y) => { const i = y * w + x; if (d[i * 4 + 3] >= 10) idx.push(i); };
+    for (let b = 0; b < band; b++) {
+      for (let x = 0; x < w; x++) { add(x, b); if (h - 1 - b > b) add(x, h - 1 - b); }
+      for (let y = band; y < h - band; y++) { add(b, y); if (w - 1 - b > b) add(w - 1 - b, y); }
+    }
+    return idx;
+  }
+  function kmeansColors(lab, idx, K = 3, rgbData = null) {
+    const n = idx.length; if (!n) return [];
+    const pts = idx.length > 6000 ? idx.filter((_, i) => i % Math.ceil(idx.length / 6000) === 0) : idx;
+    const get = i => [lab[i * 3], lab[i * 3 + 1], lab[i * 3 + 2]];
+    // pusat awal: warna paling kerap (kuantum), kemudian titik terjauh
+    const q = new Map();
+    for (const i of pts) { const k = ((lab[i * 3] / 6) | 0) * 10000 + ((lab[i * 3 + 1] / 6) | 0) * 100 + ((lab[i * 3 + 2] / 6) | 0); q.set(k, (q.get(k) || 0) + 1); }
+    let bk = null, bc = -1; for (const [k, c] of q) if (c > bc) { bc = c; bk = k; }
+    let first = pts[0]; for (const i of pts) { const k = ((lab[i * 3] / 6) | 0) * 10000 + ((lab[i * 3 + 1] / 6) | 0) * 100 + ((lab[i * 3 + 2] / 6) | 0); if (k === bk) { first = i; break; } }
+    const C = [get(first)];
+    while (C.length < K) {
+      let far = -1, fd = -1;
+      for (const i of pts) { let m = 1e9; for (const c of C) m = Math.min(m, dE(lab, i, c)); if (m > fd) { fd = m; far = i; } }
+      if (fd < 8) break; C.push(get(far));
+    }
+    let assign = new Int32Array(pts.length);
+    for (let it = 0; it < 10; it++) {
+      const S = C.map(() => [0, 0, 0, 0]);
+      pts.forEach((i, j) => { let b = 0, bd = 1e9; C.forEach((c, k) => { const d = dE(lab, i, c); if (d < bd) { bd = d; b = k; } }); assign[j] = b; const s = S[b]; s[0] += lab[i * 3]; s[1] += lab[i * 3 + 1]; s[2] += lab[i * 3 + 2]; s[3]++; });
+      S.forEach((s, k) => { if (s[3]) { C[k] = [s[0] / s[3], s[1] / s[3], s[2] / s[3]]; } });
+    }
+    const cnt = C.map(() => 0), rs = C.map(() => [0, 0, 0]); assign.forEach((a, j) => { cnt[a]++; if (rgbData) { const i = pts[j] * 4; rs[a][0] += rgbData[i]; rs[a][1] += rgbData[i + 1]; rs[a][2] += rgbData[i + 2]; } });
+    return C.map((c, k) => ({ c, share: cnt[k] / pts.length, rgb: cnt[k] ? rs[k].map(v => Math.round(v / cnt[k])) : [0, 0, 0] })).sort((a, b) => b.share - a.share);
+  }
+
+  // ---------------- morfologi / komponen
+  function floodFrom(seed, allowed, w, h) {       // seed & allowed: Uint8Array; hasil: Uint8Array (4-bersambung)
+    const out = new Uint8Array(w * h), st = new Int32Array(w * h); let sp = 0;
+    for (let i = 0; i < out.length; i++) if (seed[i] && allowed[i]) { out[i] = 1; st[sp++] = i; }
+    while (sp) {
+      const i = st[--sp], x = i % w, y = (i / w) | 0;
+      if (x > 0 && !out[i - 1] && allowed[i - 1]) { out[i - 1] = 1; st[sp++] = i - 1; }
+      if (x < w - 1 && !out[i + 1] && allowed[i + 1]) { out[i + 1] = 1; st[sp++] = i + 1; }
+      if (y > 0 && !out[i - w] && allowed[i - w]) { out[i - w] = 1; st[sp++] = i - w; }
+      if (y < h - 1 && !out[i + w] && allowed[i + w]) { out[i + w] = 1; st[sp++] = i + w; }
+    }
+    return out;
+  }
+  function components(mask, w, h) {                // -> { lab Int32Array, sizes[] (indeks 1..n) }
+    const lab = new Int32Array(w * h), sizes = [0], st = new Int32Array(w * h); let n = 0;
+    for (let s = 0; s < lab.length; s++) {
+      if (!mask[s] || lab[s]) continue;
+      n++; let sp = 0, cnt = 0; lab[s] = n; st[sp++] = s;
+      while (sp) {
+        const i = st[--sp]; cnt++;
+        const x = i % w, y = (i / w) | 0;
+        if (x > 0 && mask[i - 1] && !lab[i - 1]) { lab[i - 1] = n; st[sp++] = i - 1; }
+        if (x < w - 1 && mask[i + 1] && !lab[i + 1]) { lab[i + 1] = n; st[sp++] = i + 1; }
+        if (y > 0 && mask[i - w] && !lab[i - w]) { lab[i - w] = n; st[sp++] = i - w; }
+        if (y < h - 1 && mask[i + w] && !lab[i + w]) { lab[i + w] = n; st[sp++] = i + w; }
+      }
+      sizes.push(cnt);
+    }
+    return { lab, sizes, n };
+  }
+  function erode(mask, w, h, r) {
+    let a = mask;
+    for (let it = 0; it < r; it++) {
+      const o = new Uint8Array(w * h);
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        const i = y * w + x;
+        o[i] = a[i] && x > 0 && x < w - 1 && y > 0 && y < h - 1 && a[i - 1] && a[i + 1] && a[i - w] && a[i + w] ? 1 : 0;
+      }
+      a = o;
+    }
+    return a;
+  }
+
+  // hakis 1px, tetapi kekalkan garisan nipis (jangan hapuskan biji yang nipis seperti garis tepi)
+  function thinSafeErode(m, w, h) {
+    let before = 0; for (let i = 0; i < m.length; i++) before += m[i];
+    const e = erode(m, w, h, 1); let after = 0; for (let i = 0; i < e.length; i++) after += e[i];
+    return after < before * 0.45 ? m : e;
+  }
+
+  // kawasan yang boleh dicapai daripada latar melalui peralihan LICIN dan semakin jauh daripada warna latar (bayang, cerun cahaya);
+  // tepi tajam (garisan, kontur) tidak boleh dirempuh, dan tidak boleh 'turun semula' ke warna latar (elak bocor ke dalam objek putih)
+  function smoothReach(bgConf, lab, dmin, w, h, step, drop, block) {
+    const n = w * h, pk = new Float32Array(n).fill(1e9), out = new Uint8Array(n);
+    // lab dilicinkan untuk ujian langkah (tahan hingar)
+    const sm = new Float32Array(n * 3);
+    for (let k = 0; k < 3; k++) { const pl = new Float32Array(n); for (let i = 0; i < n; i++) pl[i] = lab[i * 3 + k]; const bl = boxMean(pl, w, h, 1); for (let i = 0; i < n; i++) sm[i * 3 + k] = bl[i]; }
+    const B = 160, buckets = Array.from({ length: B + 1 }, () => []);
+    const key = v => Math.min(B, Math.max(0, Math.round(v * 2)));
+    for (let i = 0; i < n; i++) if (bgConf[i]) { pk[i] = dmin[i]; out[i] = 1; buckets[key(dmin[i])].push(i); }
+    const tryN = (p, q) => {
+      if (out[q] || (block && block[q])) return;
+      const a = sm[p * 3] - sm[q * 3], b = sm[p * 3 + 1] - sm[q * 3 + 1], c = sm[p * 3 + 2] - sm[q * 3 + 2];
+      if (Math.sqrt(a * a + b * b + c * c) > step) return;
+      if (dmin[q] < pk[p] - drop) return;
+      const npk = Math.max(pk[p], dmin[q]);
+      if (npk < pk[q]) { pk[q] = npk; out[q] = 1; buckets[key(npk)].push(q); }
+    };
+    for (let bi = 0; bi <= B; bi++) {
+      const bk = buckets[bi];
+      for (let t = 0; t < bk.length; t++) {
+        const p = bk[t], x = p % w, y = (p / w) | 0;
+        if (x > 0) tryN(p, p - 1); if (x < w - 1) tryN(p, p + 1); if (y > 0) tryN(p, p - w); if (y < h - 1) tryN(p, p + w);
+      }
+    }
+    return out;
+  }
+
+  // ---------------- jarak geodesik (imbasan raster, chamfer)
+  function geodesic(seed, lab, w, h, gam, passes = 3, dsw = 1) {   // kos langkah = jarak + gam·ΔE
+    const n = w * h, D = new Float32Array(n), S2 = 1.41421356;
+    for (let i = 0; i < n; i++) D[i] = seed[i] ? 0 : 1e9;
+    const rel = (i, j, ds0, cur) => {
+      const ds = ds0 * dsw;
+      const a = lab[i * 3] - lab[j * 3], b = lab[i * 3 + 1] - lab[j * 3 + 1], c = lab[i * 3 + 2] - lab[j * 3 + 2];
+      const nd = D[j] + ds + gam * Math.sqrt(a * a + b * b + c * c);
+      return nd < cur ? nd : cur;
+    };
+    for (let it = 0; it < passes; it++) {
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        const i = y * w + x; let d = D[i];
+        if (x > 0) d = rel(i, i - 1, 1, d);
+        if (y > 0) {
+          d = rel(i, i - w, 1, d);
+          if (x > 0) d = rel(i, i - w - 1, S2, d);
+          if (x < w - 1) d = rel(i, i - w + 1, S2, d);
+        }
+        D[i] = d;
+      }
+      for (let y = h - 1; y >= 0; y--) for (let x = w - 1; x >= 0; x--) {
+        const i = y * w + x; let d = D[i];
+        if (x < w - 1) d = rel(i, i + 1, 1, d);
+        if (y < h - 1) {
+          d = rel(i, i + w, 1, d);
+          if (x < w - 1) d = rel(i, i + w + 1, S2, d);
+          if (x > 0) d = rel(i, i + w - 1, S2, d);
+        }
+        D[i] = d;
+      }
+    }
+    return D;
+  }
+
+  // ---------------- segmentasi utama (resolusi kerja)
+  // img: {w,h,data(RGBA)}  opts: { tol(4-40), protect(0.5-2), holes:'auto'|'keep'|'remove', keepLargest:bool, picked:[[r,g,b]...],
+  //                                  marks:Uint8Array(1 FG,2 BG)|null, prior:Float32Array|null (0..1 AI) }
+  function segment(img, o = {}) {
+    const { w, h, data } = img, n = w * h, info = {};
+    const tol = o.tol ?? 7, protect = o.protect ?? 1, marks = o.marks || null;
+    const lab = toLab(data, n);
+    // piksel sudah lut sinar = latar tetap
+    const transp = new Uint8Array(n); for (let i = 0; i < n; i++) if (data[i * 4 + 3] < 10) transp[i] = 1;
+    // model latar
+    const bidx = borderPixels(data, w, h, Math.max(1, Math.round(Math.min(w, h) * 0.004)));
+    const cl = kmeansColors(lab, bidx, 3, data);
+    // lalai: warna dominan + warna lain jika ≥30% tepi; pengguna boleh menukar melalui o.bgClusters (senarai indeks)
+    const useIdx = o.bgClusters || cl.map((c, k) => k).filter(k => k === 0 || cl[k].share >= 0.30);
+    const centers = useIdx.filter(k => cl[k]).map(k => cl[k].c);
+    info.clusters = cl.map((c, k) => ({ rgb: c.rgb, share: c.share, used: useIdx.includes(k) }));
+    const pickedLab = [];
+    for (const [r, g, b] of o.picked || []) { const t = toLab(new Uint8ClampedArray([r, g, b, 255]), 1); pickedLab.push([t[0], t[1], t[2]]); }
+    const allCenters = centers.concat(pickedLab);
+    if (!allCenters.length) { info.error = 'Tiada piksel tepi yang kelihatan — guna tanda Simpan / Buang'; }
+    const dmin = new Float32Array(n);
+    for (let i = 0; i < n; i++) { let m = 1e9; for (const c of allCenters) { const d = dE(lab, i, c); if (d < m) m = d; } dmin[i] = m; }
+    // biji latar yakin: dekat warna latar & bersambung dengan tepi (atau lut sinar), + warna dipilih (global)
+    const low = new Uint8Array(n), edgeSeed = new Uint8Array(n);
+    for (let i = 0; i < n; i++) low[i] = dmin[i] < tol || transp[i] ? 1 : 0;
+    for (let x = 0; x < w; x++) { edgeSeed[x] = 1; edgeSeed[(h - 1) * w + x] = 1; }
+    for (let y = 0; y < h; y++) { edgeSeed[y * w] = 1; edgeSeed[y * w + w - 1] = 1; }
+    const bgConf = floodFrom(edgeSeed, low, w, h);
+    for (let i = 0; i < n; i++) if (transp[i]) bgConf[i] = 1;
+    if (pickedLab.length) for (let i = 0; i < n; i++) { for (const c of pickedLab) if (dE(lab, i, c) < tol) { bgConf[i] = 1; break; } }
+    // tanda pengguna BG masuk awal supaya mempengaruhi jangkauan latar
+    const fixedFg = new Uint8Array(n), fixedBg = new Uint8Array(n);
+    if (marks) for (let i = 0; i < n; i++) { if (marks[i] === 1) fixedFg[i] = 1; else if (marks[i] === 2) { fixedBg[i] = 1; bgConf[i] = 1; } }
+    const tEdge = Math.max(tol * 1.3, 9), strong = new Uint8Array(n), flagged = new Uint8Array(n);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = y * w + x; let m = 0;
+      for (const j of [x < w - 1 ? i + 1 : -1, y < h - 1 ? i + w : -1]) { if (j < 0) continue; const d = dE(lab, i, [lab[j * 3], lab[j * 3 + 1], lab[j * 3 + 2]]); if (d > m) m = d; }
+      if (m > tEdge * 0.9) { strong[i] = 1; if (x < w - 1 && (y * w + x + 1) !== i) strong[i + 1] = strong[i + 1] || 0; } }
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const i = y * w + x; let f = strong[i];
+      if (!f && x > 0 && strong[i - 1]) f = 1; if (!f && y > 0 && strong[i - w]) f = 1; flagged[i] = f; if (f) { if (x > 0) flagged[i - 1] = 1; if (y > 0) flagged[i - w] = 1; } }
+    const blockT = 5, block = new Uint8Array(n); for (let i = 0; i < n; i++) block[i] = flagged[i] && dmin[i] > blockT ? 1 : 0;
+    const Rs = smoothReach(bgConf, lab, dmin, w, h, o.smooth ?? 2.6, 2.0, block);
+    for (let i = 0; i < n; i++) if (fixedFg[i]) Rs[i] = 0;
+    const bgSeed = new Uint8Array(n); for (let i = 0; i < n; i++) bgSeed[i] = bgConf[i] || Rs[i] ? 1 : 0;
+    // biji subjek yakin: jauh daripada warna latar DAN tidak mudah dicapai daripada latar melalui peralihan licin (bayang, cerun cahaya)
+    const tHi = o.seedT ?? Math.max(tol * 2.5, 20);
+    let fgConf = new Uint8Array(n);
+    for (let i = 0; i < n; i++) fgConf[i] = !transp[i] && dmin[i] > tHi && !bgSeed[i] ? 1 : 0;
+    fgConf = thinSafeErode(fgConf, w, h);
+    { const cc = components(fgConf, w, h), minA = Math.max(6, n * 0.0003); for (let i = 0; i < n; i++) if (fgConf[i] && cc.sizes[cc.lab[i]] < minA) fgConf[i] = 0; }
+    // garis/kontur tajam (kontras rendah pun) = biji subjek
+    { const em = new Uint8Array(n), anyC = cl.filter(c => c.share >= 0.05).map(c => c.c).concat(pickedLab);
+      for (let i = 0; i < n; i++) { if (!(flagged[i] && dmin[i] > tEdge && !transp[i] && !fixedBg[i])) continue; let near = false; for (const c of anyC) if (dE(lab, i, c) < tol * 2) { near = true; break; } em[i] = near ? 0 : 1; }
+      const ec = components(em, w, h), minE = Math.max(40, n * 0.0006);
+      for (let i = 0; i < n; i++) if (em[i] && ec.sizes[ec.lab[i]] >= minE) { fgConf[i] = 1; bgSeed[i] = 0; } }
+    // prior AI (pilihan): menambah biji yakin
+    if (o.prior) {
+      const p = o.prior, pf = new Uint8Array(n);
+      for (let i = 0; i < n; i++) { if (p[i] > 0.93) pf[i] = 1; else if (p[i] < 0.06 && !fgConf[i]) bgConf[i] = bgConf[i] || (dmin[i] < tHi ? 1 : 0); }
+      const pe = erode(pf, w, h, 2); for (let i = 0; i < n; i++) if (pe[i] && !bgConf[i]) fgConf[i] = 1;
+    }
+    // tanda pengguna (keutamaan mutlak)
+    for (let i = 0; i < n; i++) if (fixedFg[i]) fgConf[i] = 1;
+    let fgCount = 0; for (let i = 0; i < n; i++) fgCount += fgConf[i];
+    if (!fgCount) {
+      // longgarkan
+      for (let i = 0; i < n; i++) fgConf[i] = !transp[i] && dmin[i] > tol * 1.3 && !bgSeed[i] ? 1 : 0;
+      fgConf = thinSafeErode(fgConf, w, h);
+      fgCount = 0; for (let i = 0; i < n; i++) fgCount += fgConf[i];
+    }
+    info.fgSeeds = fgCount;
+    if (!fgCount) { info.error = 'Subjek tidak dapat dikesan (warna sama dengan latar). Tanda kawasan subjek dengan berus hijau.'; return { label: new Uint8Array(n), info }; }
+    // jarak geodesik
+    const Db = geodesic(bgSeed, lab, w, h, 1), Df = geodesic(fgConf, lab, w, h, 1);
+    let label = new Uint8Array(n);
+    for (let i = 0; i < n; i++) label[i] = Df[i] * protect <= Db[i] ? 1 : 0;
+    for (let i = 0; i < n; i++) { if (fixedFg[i]) label[i] = 1; else if (fixedBg[i] || transp[i]) label[i] = 0; }
+    // lubang tertutup (latar yang tidak bersambung dengan tepi)
+    const bgLab = new Uint8Array(n); for (let i = 0; i < n; i++) bgLab[i] = label[i] ? 0 : 1;
+    const outside = floodFrom(edgeSeed, bgLab, w, h);
+    const holes = components((() => { const m = new Uint8Array(n); for (let i = 0; i < n; i++) m[i] = bgLab[i] && !outside[i] ? 1 : 0; return m; })(), w, h);
+    const hmode = o.holes || 'keep';
+    info.holes = holes.n;
+    for (let k = 1; k <= holes.n; k++) {
+      let cnt = 0, flat = 0, userBg = false;
+      for (let i = 0; i < n; i++) if (holes.lab[i] === k) { cnt++; if (dmin[i] < tol * 0.6) flat++; if (fixedBg[i] || transp[i]) userBg = true; }
+      const bgLike = cnt >= Math.max(6, n * 0.0002) && flat >= 0.9 * cnt;
+      const keep = userBg ? false : hmode === 'remove' ? !bgLike : true;
+      if (keep) for (let i = 0; i < n; i++) if (holes.lab[i] === k) label[i] = 1;
+    }
+    // bintik subjek kecil & objek terbesar
+    { const cc = components(label, w, h);
+      let big = 1; for (let k = 2; k <= cc.n; k++) if (cc.sizes[k] > cc.sizes[big]) big = k;
+      const minA = Math.max(8, n * 0.0004);
+      for (let i = 0; i < n; i++) if (label[i] && !fixedFg[i]) { const s = cc.sizes[cc.lab[i]]; if (s < minA || (o.keepLargest && cc.lab[i] !== big && s < cc.sizes[big] * 0.5)) label[i] = 0; } }
+    info.fgFrac = label.reduce((a, v) => a + v, 0) / n;
+    return { label, info, dbg: o.debug ? { fgConf, bgConf, Rs, Db, Df, dmin } : undefined };
+  }
+
+  // ---------------- guided filter berwarna (He et al.)
+  function boxMean(src, w, h, r) {
+    const out = new Float32Array(w * h), tmp = new Float32Array(w * h), win = 2 * r + 1;
+    for (let y = 0; y < h; y++) {
+      let s = 0; const row = y * w;
+      for (let x = -r; x <= r; x++) s += src[row + clamp(x, 0, w - 1)];
+      for (let x = 0; x < w; x++) { tmp[row + x] = s / win; s += src[row + clamp(x + r + 1, 0, w - 1)] - src[row + clamp(x - r, 0, w - 1)]; }
+    }
+    for (let x = 0; x < w; x++) {
+      let s = 0;
+      for (let y = -r; y <= r; y++) s += tmp[clamp(y, 0, h - 1) * w + x];
+      for (let y = 0; y < h; y++) { out[y * w + x] = s / win; s += tmp[clamp(y + r + 1, 0, h - 1) * w + x] - tmp[clamp(y - r, 0, h - 1) * w + x]; }
+    }
+    return out;
+  }
+  function guided(rgba, p, w, h, r, eps) {         // p: Float32 0..1; hasil Float32
+    const n = w * h, I = [new Float32Array(n), new Float32Array(n), new Float32Array(n)];
+    for (let i = 0; i < n; i++) { I[0][i] = rgba[i * 4] / 255; I[1][i] = rgba[i * 4 + 1] / 255; I[2][i] = rgba[i * 4 + 2] / 255; }
+    const mI = I.map(c => boxMean(c, w, h, r)), mp = boxMean(p, w, h, r);
+    const mul = (a, b) => { const o = new Float32Array(n); for (let i = 0; i < n; i++) o[i] = a[i] * b[i]; return o; };
+    const cIp = I.map(c => { const m = boxMean(mul(c, p), w, h, r); for (let i = 0; i < n; i++) m[i] -= mI[0] === c ? 0 : 0; return m; });
+    const cov = [], pairs = [[0, 0], [0, 1], [0, 2], [1, 1], [1, 2], [2, 2]];
+    for (const [a, b] of pairs) { const m = boxMean(mul(I[a], I[b]), w, h, r); for (let i = 0; i < n; i++) m[i] -= mI[a][i] * mI[b][i]; cov.push(m); }
+    const A = [new Float32Array(n), new Float32Array(n), new Float32Array(n)], B = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      const s00 = cov[0][i] + eps, s01 = cov[1][i], s02 = cov[2][i], s11 = cov[3][i] + eps, s12 = cov[4][i], s22 = cov[5][i] + eps;
+      const c0 = cIp[0][i] - mI[0][i] * mp[i], c1 = cIp[1][i] - mI[1][i] * mp[i], c2 = cIp[2][i] - mI[2][i] * mp[i];
+      const i00 = s11 * s22 - s12 * s12, i01 = s02 * s12 - s01 * s22, i02 = s01 * s12 - s02 * s11;
+      const i11 = s00 * s22 - s02 * s02, i12 = s01 * s02 - s00 * s12, i22 = s00 * s11 - s01 * s01;
+      const det = s00 * i00 + s01 * i01 + s02 * i02 || 1e-9;
+      const a0 = (i00 * c0 + i01 * c1 + i02 * c2) / det, a1 = (i01 * c0 + i11 * c1 + i12 * c2) / det, a2 = (i02 * c0 + i12 * c1 + i22 * c2) / det;
+      A[0][i] = a0; A[1][i] = a1; A[2][i] = a2; B[i] = mp[i] - a0 * mI[0][i] - a1 * mI[1][i] - a2 * mI[2][i];
+    }
+    const mA = A.map(c => boxMean(c, w, h, r)), mB = boxMean(B, w, h, r), q = new Float32Array(n);
+    for (let i = 0; i < n; i++) q[i] = clamp(mA[0][i] * I[0][i] + mA[1][i] * I[1][i] + mA[2][i] * I[2][i] + mB[i], 0, 1);
+    return q;
+  }
+
+  // ---------------- matte resolusi penuh
+  // full: {w,h,data}; label: Uint8 pada (lw,lh); o: { band(px kerja), soft(0..1), shrink(px), hard:boolean, decon:boolean }
+  function matte(full, label, lw, lh, o = {}) {
+    let { w, h, data } = full;
+    const maxMP = 6e6; let scaleDown = 1;
+    if (w * h > maxMP) scaleDown = Math.sqrt(maxMP / (w * h));
+    // sediakan imej kerja matte
+    const mw = Math.max(1, Math.round(w * scaleDown)), mh = Math.max(1, Math.round(h * scaleDown));
+    let mdata = data;
+    if (scaleDown < 1) { const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(data), w, h), 0, 0); const c2 = document.createElement('canvas'); c2.width = mw; c2.height = mh; const x2 = c2.getContext('2d'); x2.imageSmoothingQuality = 'high'; x2.drawImage(c, 0, 0, mw, mh); mdata = x2.getImageData(0, 0, mw, mh).data; }
+    // label -> prior lembut pada resolusi matte
+    const lc = document.createElement('canvas'); lc.width = lw; lc.height = lh; const lx = lc.getContext('2d'); const li = lx.createImageData(lw, lh);
+    for (let i = 0; i < lw * lh; i++) { const v = label[i] ? 255 : 0; li.data[i * 4] = li.data[i * 4 + 1] = li.data[i * 4 + 2] = v; li.data[i * 4 + 3] = 255; }
+    lx.putImageData(li, 0, 0);
+    const pc = document.createElement('canvas'); pc.width = mw; pc.height = mh; const px = pc.getContext('2d'); px.imageSmoothingEnabled = true; px.imageSmoothingQuality = 'high'; px.drawImage(lc, 0, 0, mw, mh);
+    const pd = px.getImageData(0, 0, mw, mh).data, n = mw * mh, prior = new Float32Array(n);
+    for (let i = 0; i < n; i++) prior[i] = pd[i * 4] / 255;
+    const sc = mw / lw, band = Math.max(2, Math.round((o.band ?? 2) * sc));
+    // trimap: kawasan pasti vs tidak pasti
+    const bin = new Uint8Array(n); for (let i = 0; i < n; i++) bin[i] = prior[i] > 0.5 ? 1 : 0;
+    const wide = boxMean(Float32Array.from(bin), mw, mh, band);
+    const q = guided(mdata, wide, mw, mh, Math.max(2, Math.round(band * 0.9)), 1e-4 * (1 + (o.soft ?? 0.5) * 4));
+    const alpha = new Float32Array(n);
+    const lo = o.hard ? 0.5 : 0.18, hi = o.hard ? 0.5 : 0.82;
+    for (let i = 0; i < n; i++) {
+      let a;
+      if (wide[i] > 0.999) a = 1; else if (wide[i] < 0.001) a = 0;
+      else { a = q[i]; a = o.hard ? (a > 0.5 ? 1 : 0) : clamp((a - lo) / (hi - lo), 0, 1); a = a * a * (3 - 2 * a); }
+      alpha[i] = a;
+    }
+    // kikis tepi
+    let A = alpha;
+    const sh = o.shrink || 0;
+    if (sh > 0) { const m = new Uint8Array(n); for (let i = 0; i < n; i++) m[i] = A[i] > 0.5 ? 1 : 0; const e = erode(m, mw, mh, Math.round(sh * sc)); const ef = boxMean(Float32Array.from(e), mw, mh, 1); for (let i = 0; i < n; i++) A[i] = Math.min(A[i], clamp(ef[i] * 1.6, 0, 1)); }
+    // naik ke resolusi penuh
+    let outA;
+    if (scaleDown < 1) {
+      const ac = document.createElement('canvas'); ac.width = mw; ac.height = mh; const ax = ac.getContext('2d'); const ai = ax.createImageData(mw, mh);
+      for (let i = 0; i < n; i++) { const v = (A[i] * 255 + 0.5) | 0; ai.data[i * 4] = ai.data[i * 4 + 1] = ai.data[i * 4 + 2] = v; ai.data[i * 4 + 3] = 255; }
+      ax.putImageData(ai, 0, 0);
+      const fc = document.createElement('canvas'); fc.width = w; fc.height = h; const fx = fc.getContext('2d'); fx.imageSmoothingQuality = 'high'; fx.drawImage(ac, 0, 0, w, h);
+      const fd = fx.getImageData(0, 0, w, h).data; outA = new Float32Array(w * h); for (let i = 0; i < w * h; i++) outA[i] = fd[i * 4] / 255;
+    } else outA = A;
+    return outA;
+  }
+
+  // gunakan alfa pada piksel + nyahcemar warna tepi; hasil ImageData baharu
+  function compose(full, alpha, o = {}) {
+    const { w, h, data } = full, n = w * h, out = new Uint8ClampedArray(data.length);
+    const core = new Float32Array(n), cr = new Float32Array(n), cg = new Float32Array(n), cb = new Float32Array(n);
+    for (let i = 0; i < n; i++) { const c = alpha[i] > 0.97 ? 1 : 0; core[i] = c; cr[i] = data[i * 4] * c; cg[i] = data[i * 4 + 1] * c; cb[i] = data[i * 4 + 2] * c; }
+    let mr, mg, mb, mw_;
+    if (o.decon !== false) { const r = Math.max(2, o.deconR || 4); mr = boxMean(cr, w, h, r); mg = boxMean(cg, w, h, r); mb = boxMean(cb, w, h, r); mw_ = boxMean(core, w, h, r); }
+    for (let i = 0; i < n; i++) {
+      const p = i * 4, a = alpha[i], oa = data[p + 3];
+      let r = data[p], g = data[p + 1], b = data[p + 2];
+      if (mw_ && a < 0.97 && a > 0 && mw_[i] > 0.03) { r = mr[i] / mw_[i]; g = mg[i] / mw_[i]; b = mb[i] / mw_[i]; }
+      out[p] = r; out[p + 1] = g; out[p + 2] = b; out[p + 3] = Math.round(oa * a);
+    }
+    return new ImageData(out, w, h);
+  }
+
+  return { toLab, segment, matte, compose, components, erode, floodFrom, geodesic, guided, boxMean, kmeansColors };
+})();
+
+</script>
+<script>
+// =====================================================================
+// ===== TINGKATKAN KUALITI (Besarkan / Tajamkan) + AI offline — untuk Editor Design =====
+// Pergantungan host: showToast(msg, isError)   (pilihan: DE untuk dialog)
+// AIX  : AI offline melalui onnxruntime-web (fail dalam ./vendor/ort/ dan ./models/)
+// UPX  : algoritma klasik (Lanczos + pertajam) + dialog
+// =====================================================================
+const AIX = (() => {
+  const ORT_DIR = './vendor/ort/', MODEL_DIR = './models/';
+  const MODELS = {
+    srFast: { file: 'realesr-general-x4v3.onnx', min: 3e6, name: 'Real-ESRGAN general x4v3 (cepat)' },
+    srHq:   { file: 'realesrgan-x4plus.onnx',    min: 40e6, name: 'Real-ESRGAN x4plus (kualiti tinggi)' },
+    bg:     { file: 'u2netp.onnx',               min: 3e6, name: 'U2-Net-P (buang latar)' }
+  };
+  let ortP = null; const sessions = {}; let cancelFlag = false;
+  const abs = rel => new URL(rel, location.href).href;
+  async function exists(url) {
+    try { const ac = new AbortController(); const r = await fetch(url, { cache: 'no-store', signal: ac.signal }); const ok = r.ok; ac.abort(); return ok; }
+    catch (e) { return false; }
+  }
+  async function status() {
+    if (api._inject) return api._inject.status();
+    if (location.protocol === 'file:') return { ort: false, srFast: false, srHq: false, bg: false };
+    const [ort, srFast, srHq, bg] = await Promise.all([exists(abs(ORT_DIR + 'ort.min.js')), exists(abs(MODEL_DIR + MODELS.srFast.file)), exists(abs(MODEL_DIR + MODELS.srHq.file)), exists(abs(MODEL_DIR + MODELS.bg.file))]);
+    return { ort, srFast: ort && srFast, srHq: ort && srHq, bg: ort && bg };
+  }
+  function loadOrt() {
+    if (window.ort) return Promise.resolve(window.ort);
+    if (ortP) return ortP;
+    ortP = new Promise((res, rej) => {
+      const s = document.createElement('script'); s.src = abs(ORT_DIR + 'ort.min.js');
+      s.onload = () => {
+        try { ort.env.wasm.wasmPaths = abs(ORT_DIR); ort.env.wasm.numThreads = 1; ort.env.wasm.proxy = false; } catch (e) {}
+        res(window.ort);
+      };
+      s.onerror = () => { ortP = null; rej(new Error('ort.min.js tidak dijumpai — jalankan PASANG-MODEL-AI.bat')); };
+      document.head.appendChild(s);
+    });
+    return ortP;
+  }
+  // sesi ringkas: infer(Float32Array NCHW, h, w) -> { data, h, w }
+  async function getSession(kind) {
+    if (api._inject) return api._inject.getSession(kind);
+    if (sessions[kind]) return sessions[kind];
+    const m = MODELS[kind]; if (!m) throw new Error('Model tidak dikenali');
+    const ort = await loadOrt();
+    const r = await fetch(abs(MODEL_DIR + m.file), { cache: 'no-store' });
+    if (!r.ok) throw new Error(`Model ${m.file} tiada — jalankan PASANG-MODEL-AI.bat`);
+    const buf = await r.arrayBuffer();
+    const s = await ort.InferenceSession.create(buf, { executionProviders: ['wasm'], graphOptimizationLevel: 'all' });
+    const inName = s.inputNames[0], outName = s.outputNames[0];
+    return (sessions[kind] = {
+      async infer(data, h, w) {
+        const out = await s.run({ [inName]: new ort.Tensor('float32', data, [1, 3, h, w]) });
+        const t = out[outName]; const d = t.dims;
+        return { data: t.data, h: d[d.length - 2], w: d[d.length - 1], dims: d };
+      }
+    });
+  }
+  const cancel = () => { cancelFlag = true; };
+  const resetCancel = () => { cancelFlag = false; };
+  const cancelled = () => cancelFlag;
+  const api = { MODELS, status, getSession, cancel, resetCancel, cancelled, _inject: null };
+  return api;
+})();
+
+const UPX = (() => {
+  const MAX_SIDE = 8192, MAX_PX = 50e6;
+  const $u = id => document.getElementById(id);
+  const toast = (m, e) => (typeof showToast === 'function' ? showToast(m, e) : console.log(m));
+  const mk = (w, h) => { const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; };
+  const clamp8 = v => v < 0 ? 0 : v > 255 ? 255 : v;
+  const tick = () => new Promise(r => setTimeout(r, 0));
+
+  // ---------- tebar warna ke kawasan lut sinar (elak halo gelap/putih) ----------
+  function bleed(img, iters = 12) {
+    const { data, width: w, height: h } = img, n = w * h;
+    let known = new Uint8Array(n), any = false;
+    for (let i = 0; i < n; i++) if (data[i * 4 + 3] > 8) { known[i] = 1; any = true; }
+    if (!any) return img;
+    for (let it = 0; it < iters; it++) {
+      const nk = known.slice(); let changed = 0;
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        const i = y * w + x; if (known[i]) continue;
+        let r = 0, g = 0, b = 0, c = 0;
+        for (let dy = -1; dy <= 1; dy++) { const yy = y + dy; if (yy < 0 || yy >= h) continue;
+          for (let dx = -1; dx <= 1; dx++) { const xx = x + dx; if (xx < 0 || xx >= w) continue;
+            const j = yy * w + xx; if (known[j]) { r += data[j * 4]; g += data[j * 4 + 1]; b += data[j * 4 + 2]; c++; } } }
+        if (c) { data[i * 4] = r / c; data[i * 4 + 1] = g / c; data[i * 4 + 2] = b / c; nk[i] = 1; changed++; }
+      }
+      known = nk; if (!changed) break;
+    }
+    return img;
+  }
+  // ---------- denoise bilateral 3x3 (kekal tepi) ----------
+  function denoise(img, amount) {
+    if (amount <= 0) return img;
+    const { data, width: w, height: h } = img, src = new Uint8ClampedArray(data);
+    const sig = 4 + amount * 0.6, k = -1 / (2 * sig * sig), mix = Math.min(1, amount / 60);
+    const Y = i => 0.299 * src[i] + 0.587 * src[i + 1] + 0.114 * src[i + 2];
+    for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+      const i = (y * w + x) * 4, y0 = Y(i); let r = 0, g = 0, b = 0, ws = 0;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const j = ((y + dy) * w + x + dx) * 4, d = Y(j) - y0, wt = Math.exp(k * d * d) * (dx && dy ? 0.7 : 1);
+        r += src[j] * wt; g += src[j + 1] * wt; b += src[j + 2] * wt; ws += wt;
+      }
+      data[i] = src[i] + (r / ws - src[i]) * mix; data[i + 1] = src[i + 1] + (g / ws - src[i + 1]) * mix; data[i + 2] = src[i + 2] + (b / ws - src[i + 2]) * mix;
+    }
+    return img;
+  }
+  // ---------- Lanczos-3 boleh-asingkan ----------
+  function lanczosWeights(srcN, dstN) {
+    const scale = dstN / srcN, fs = Math.max(1, 1 / scale), sup = 3 * fs, idx = [], wts = [];
+    const L = x => { x = Math.abs(x); if (x < 1e-8) return 1; if (x >= 3) return 0; const px = Math.PI * x; return 3 * Math.sin(px) * Math.sin(px / 3) / (px * px); };
+    for (let d = 0; d < dstN; d++) {
+      const c = (d + 0.5) / scale - 0.5, lo = Math.max(0, Math.ceil(c - sup)), hi = Math.min(srcN - 1, Math.floor(c + sup));
+      const ws = []; let sum = 0;
+      for (let s = lo; s <= hi; s++) { const w = L((s - c) / fs); ws.push(w); sum += w; }
+      if (!ws.length || !sum) { idx.push([Math.min(srcN - 1, Math.max(0, Math.round(c))), 1]); wts.push([1]); continue; }
+      for (let q = 0; q < ws.length; q++) ws[q] /= sum;
+      idx.push([lo, ws.length]); wts.push(ws);
+    }
+    return { idx, wts };
+  }
+  function lanczos(img, nw, nh) {
+    const { data, width: w, height: h } = img;
+    const hx = lanczosWeights(w, nw), vy = lanczosWeights(h, nh);
+    const tmp = new Uint8ClampedArray(nw * h * 4);
+    for (let y = 0; y < h; y++) for (let x = 0; x < nw; x++) {
+      const [lo, cnt] = hx.idx[x], ws = hx.wts[x]; let r = 0, g = 0, b = 0, a = 0;
+      for (let q = 0; q < cnt; q++) { const j = (y * w + lo + q) * 4, wt = ws[q]; r += data[j] * wt; g += data[j + 1] * wt; b += data[j + 2] * wt; a += data[j + 3] * wt; }
+      const o = (y * nw + x) * 4; tmp[o] = r; tmp[o + 1] = g; tmp[o + 2] = b; tmp[o + 3] = a;
+    }
+    const out = new ImageData(nw, nh), od = out.data;
+    for (let y = 0; y < nh; y++) { const [lo, cnt] = vy.idx[y], ws = vy.wts[y];
+      for (let x = 0; x < nw; x++) {
+        let r = 0, g = 0, b = 0, a = 0;
+        for (let q = 0; q < cnt; q++) { const j = ((lo + q) * nw + x) * 4, wt = ws[q]; r += tmp[j] * wt; g += tmp[j + 1] * wt; b += tmp[j + 2] * wt; a += tmp[j + 3] * wt; }
+        const o = (y * nw + x) * 4; od[o] = r; od[o + 1] = g; od[o + 2] = b; od[o + 3] = a;
+      } }
+    return out;
+  }
+  // ---------- unsharp mask pada luminans ----------
+  function boxBlurPlane(src, w, h, r) {
+    const tmp = new Float32Array(w * h), out = new Uint8ClampedArray(w * h), win = 2 * r + 1;
+    for (let y = 0; y < h; y++) { let s = 0; const row = y * w;
+      for (let x = -r; x <= r; x++) s += src[row + Math.min(w - 1, Math.max(0, x))];
+      for (let x = 0; x < w; x++) { tmp[row + x] = s / win; s += src[row + Math.min(w - 1, x + r + 1)] - src[row + Math.max(0, x - r)]; } }
+    for (let x = 0; x < w; x++) { let s = 0;
+      for (let y = -r; y <= r; y++) s += tmp[Math.min(h - 1, Math.max(0, y)) * w + x];
+      for (let y = 0; y < h; y++) { out[y * w + x] = s / win; s += tmp[Math.min(h - 1, y + r + 1) * w + x] - tmp[Math.max(0, y - r) * w + x]; } }
+    return out;
+  }
+  function unsharp(img, amount, radius) {
+    if (amount <= 0) return img;
+    const { data, width: w, height: h } = img, n = w * h, Yp = new Uint8ClampedArray(n);
+    for (let i = 0; i < n; i++) Yp[i] = 0.299 * data[i * 4] + 0.587 * data[i * 4 + 1] + 0.114 * data[i * 4 + 2];
+    const r = Math.max(1, Math.round(radius));
+    let bl = boxBlurPlane(Yp, w, h, r); bl = boxBlurPlane(bl, w, h, r); bl = boxBlurPlane(bl, w, h, r);   // ~ Gaussian
+    const k = amount / 100, thr = 2;
+    for (let i = 0; i < n; i++) {
+      let d = Yp[i] - bl[i]; const ad = Math.abs(d);
+      if (ad < thr) continue;
+      d *= k * Math.min(1, (ad - thr) / 6);
+      const o = i * 4; data[o] = clamp8(data[o] + d); data[o + 1] = clamp8(data[o + 1] + d); data[o + 2] = clamp8(data[o + 2] + d);
+    }
+    return img;
+  }
+  function crispAlpha(img, g) {
+    if (g <= 0) return img;
+    const d = img.data, gain = 1 + g * 3 / 100;
+    for (let i = 3; i < d.length; i += 4) { const a = d[i] / 255; d[i] = clamp8(((a - 0.5) * gain + 0.5) * 255); }
+    return img;
+  }
+  const toImg = c => c.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, c.width, c.height);
+  const toCv = img => { const c = mk(img.width, img.height); c.getContext('2d').putImageData(img, 0, 0); return c; };
+
+  // ---------- algoritma klasik ----------
+  // o: { scale, sharp(0-200), radius(1-3), denoise(0-100), crisp(0-100) }
+  function classic(srcCanvas, o) {
+    const w = srcCanvas.width, h = srcCanvas.height, s = o.scale;
+    let img = bleed(toImg(srcCanvas));
+    img = denoise(img, o.denoise || 0);
+    if (s !== 1) img = lanczos(img, Math.round(w * s), Math.round(h * s));
+    img = unsharp(img, o.sharp || 0, (o.radius || 1.2) * Math.max(1, s * 0.6));
+    img = crispAlpha(img, o.crisp || 0);
+    return toCv(img);
+  }
+
+  // ---------- AI super-resolution (tile) ----------
+  // kind: 'srFast' | 'srHq'; scale 1..4 ; onProg(done,total,etaSec)
+  async function aiUpscale(srcCanvas, kind, scale, onProg) {
+    const sess = await AIX.getSession(kind);
+    const w = srcCanvas.width, h = srcCanvas.height, T = kind === 'srHq' ? 96 : 128, PAD = 10;
+    const img = bleed(toImg(srcCanvas)), sd = img.data;
+    const ow = Math.round(w * scale), oh = Math.round(h * scale);
+    const out = mk(ow, oh), octx = out.getContext('2d');
+    octx.imageSmoothingQuality = 'high';
+    const tilesX = Math.ceil(w / T), tilesY = Math.ceil(h / T), total = tilesX * tilesY;
+    const t0 = performance.now(); let done = 0;
+    AIX.resetCancel();
+    for (let ty = 0; ty < tilesY; ty++) for (let tx = 0; tx < tilesX; tx++) {
+      if (AIX.cancelled()) throw new Error('Dibatalkan');
+      const x0 = tx * T, y0 = ty * T, cw = Math.min(T, w - x0), ch = Math.min(T, h - y0);
+      const ix0 = x0 - PAD, iy0 = y0 - PAD, iw = cw + 2 * PAD, ih = ch + 2 * PAD, plane = iw * ih;
+      const inp = new Float32Array(3 * plane);
+      for (let y = 0; y < ih; y++) { const sy = Math.min(h - 1, Math.max(0, iy0 + y));
+        for (let x = 0; x < iw; x++) { const sx = Math.min(w - 1, Math.max(0, ix0 + x)), j = (sy * w + sx) * 4, p = y * iw + x;
+          inp[p] = sd[j] / 255; inp[plane + p] = sd[j + 1] / 255; inp[2 * plane + p] = sd[j + 2] / 255; } }
+      const res = await sess.infer(inp, ih, iw);
+      const rw = res.w, rh = res.h, f = rw / iw, rp = rw * rh;
+      const tile = new ImageData(rw, rh), td = tile.data;
+      for (let p = 0; p < rp; p++) {
+        td[p * 4] = clamp8(res.data[p] * 255); td[p * 4 + 1] = clamp8(res.data[rp + p] * 255); td[p * 4 + 2] = clamp8(res.data[2 * rp + p] * 255); td[p * 4 + 3] = 255;
+      }
+      const tc = mk(rw, rh); tc.getContext('2d').putImageData(tile, 0, 0);
+      // letak pada kanvas hasil: kawasan teras sahaja (klip), skala = scale/f
+      const k = scale / f, dx = ix0 * scale, dy = iy0 * scale;
+      octx.save(); octx.beginPath(); octx.rect(x0 * scale, y0 * scale, cw * scale, ch * scale); octx.clip();
+      octx.drawImage(tc, 0, 0, rw, rh, dx, dy, rw * k, rh * k); octx.restore();
+      done++;
+      const el = (performance.now() - t0) / 1000;
+      if (onProg) onProg(done, total, el / done * (total - done));
+      await tick();
+    }
+    // alfa: Lanczos pada saluran alfa sahaja
+    const hasA = (() => { for (let i = 3; i < sd.length; i += 4) if (sd[i] < 250) return true; return false; })();
+    if (hasA) {
+      const ai = new ImageData(w, h); for (let i = 0; i < w * h; i++) { const a = sd[i * 4 + 3]; ai.data[i * 4] = ai.data[i * 4 + 1] = ai.data[i * 4 + 2] = a; ai.data[i * 4 + 3] = 255; }
+      const up = lanczos(ai, ow, oh), od = octx.getImageData(0, 0, ow, oh);
+      for (let i = 0; i < ow * oh; i++) od.data[i * 4 + 3] = up.data[i * 4];
+      octx.putImageData(od, 0, 0);
+    }
+    return out;
+  }
+
+  // ---------- AI buang latar (U2-Net-P) ----------
+  async function aiRemoveBg(srcCanvas, onProg) {
+    const sess = await AIX.getSession('bg'), S = 320, w = srcCanvas.width, h = srcCanvas.height;
+    const sc = mk(S, S), sx = sc.getContext('2d'); sx.imageSmoothingQuality = 'high'; sx.drawImage(srcCanvas, 0, 0, S, S);
+    const d = sx.getImageData(0, 0, S, S).data, plane = S * S, inp = new Float32Array(3 * plane);
+    let mx = 1; for (let i = 0; i < plane; i++) mx = Math.max(mx, d[i * 4], d[i * 4 + 1], d[i * 4 + 2]);
+    const mean = [0.485, 0.456, 0.406], std = [0.229, 0.224, 0.225];
+    for (let i = 0; i < plane; i++) for (let c = 0; c < 3; c++) inp[c * plane + i] = (d[i * 4 + c] / mx - mean[c]) / std[c];
+    if (onProg) onProg(0, 1, 0);
+    const res = await sess.infer(inp, S, S), p = res.data;
+    let lo = Infinity, hi = -Infinity; for (let i = 0; i < plane; i++) { if (p[i] < lo) lo = p[i]; if (p[i] > hi) hi = p[i]; }
+    const mimg = new ImageData(S, S), rng = (hi - lo) || 1;
+    for (let i = 0; i < plane; i++) { const v = clamp8((p[i] - lo) / rng * 255); mimg.data[i * 4] = mimg.data[i * 4 + 1] = mimg.data[i * 4 + 2] = 255; mimg.data[i * 4 + 3] = v; }
+    const mc = mk(S, S); mc.getContext('2d').putImageData(mimg, 0, 0);
+    const out = mk(w, h), ox = out.getContext('2d');
+    ox.drawImage(srcCanvas, 0, 0);
+    ox.globalCompositeOperation = 'destination-in'; ox.imageSmoothingQuality = 'high'; ox.drawImage(mc, 0, 0, w, h);
+    if (onProg) onProg(1, 1, 0);
+    return out;
+  }
+
+  // ---------- dialog ----------
+  let U = null;
+  return { classic, aiUpscale, aiRemoveBg, bleed, lanczos, unsharp, denoise, toImg, toCv };
+})();
+
+</script>
+<script>
+'use strict';
+const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const mk = (w, h) => { const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; };
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const cloneCv = c => { const n = mk(c.width, c.height); n.getContext('2d').drawImage(c, 0, 0); return n; };
+const toast = (m, err) => { const t = $('#toast'); t.textContent = m; t.className = err ? 'err' : ''; t.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(() => t.style.display = 'none', err ? 5000 : 2600); };
+const tick = () => new Promise(r => setTimeout(r, 0));
+let UID = 1;
+const S = { w: 0, h: 0, dpi: 300, bg: '#ffffff', layers: [], sel: null, tool: 'move', z: 1, px: 0, py: 0, hist: [], hi: -1, fg: '#000000', bk: '#ffffff', size: 24, hard: 0.8, flow: 1, shape: 'rect', sfill: '#e53935', sstroke: '#000000', sw: 0, space: false, guides: [], noOv: false };
+const FONTS = ['Arial', 'Arial Black', 'Verdana', 'Tahoma', 'Trebuchet MS', 'Segoe UI', 'Calibri', 'Georgia', 'Times New Roman', 'Courier New', 'Impact', 'Comic Sans MS', 'sans-serif', 'serif', 'monospace'];
+
+// ---------- lapisan ----------
+function newLayer(kind, cv, name, o = {}) {
+  return Object.assign({ id: UID++, kind, name: name || 'Lapisan', cv, x: S.w / 2, y: S.h / 2, sx: 1, sy: 1, rot: 0, op: 1, blend: 'normal', vis: true, lock: false, t: {}, fx: { sh: { on: false, color: '#000000', blur: 12, dx: 6, dy: 6 } } }, o);
+}
+const selLayer = () => S.layers.find(l => l.id === S.sel) || null;
+function snapLayer(L) { return Object.assign({}, L, { t: Object.assign({}, L.t), fx: JSON.parse(JSON.stringify(L.fx)) }); }
+function snap() { return { w: S.w, h: S.h, dpi: S.dpi, bg: S.bg, sel: S.sel, layers: S.layers.map(snapLayer) }; }
+function restore(st) { S.w = st.w; S.h = st.h; S.dpi = st.dpi; S.bg = st.bg; S.sel = st.sel; S.layers = st.layers.map(snapLayer); refreshAll(); }
+let commitT = 0, saveT = 0;
+function commit() { clearTimeout(commitT); if (S.hi < S.hist.length - 1) S.hist.length = S.hi + 1; S.hist.push(snap()); if (S.hist.length > 60) S.hist.shift(); S.hi = S.hist.length - 1; undoBtns(); scheduleSave(); }
+function commitSoon() { clearTimeout(commitT); commitT = setTimeout(commit, 450); }
+function undo() { if (commitT) { clearTimeout(commitT); commitT = 0; commit(); } if (S.hi > 0) { S.hi--; restore(S.hist[S.hi]); undoBtns(); scheduleSave(); } }
+function redo() { if (S.hi < S.hist.length - 1) { S.hi++; restore(S.hist[S.hi]); undoBtns(); scheduleSave(); } }
+function undoBtns() { $('#bUndo').disabled = S.hi <= 0; $('#bRedo').disabled = S.hi >= S.hist.length - 1; }
+
+// ---------- dokumen ----------
+function newDoc(w, h, dpi, bg) {
+  w = clamp(Math.round(w), 1, 16000); h = clamp(Math.round(h), 1, 16000);
+  Object.assign(S, { w, h, dpi: dpi || 300, bg, layers: [], sel: null, hist: [], hi: -1 }); commit(); fitView(); refreshAll();
+  $('#welcome').classList.remove('show');
+}
+function addLayer(L, select = true) { S.layers.push(L); if (select) S.sel = L.id; refreshAll(); commit(); return L; }
+function addImageCanvas(cv, name, fit = true) {
+  if (!S.w) { newDoc(cv.width, cv.height, 300, 'transparent'); }
+  const L = newLayer('img', cv, name || 'Imej');
+  if (fit) { const k = Math.min(1, S.w / cv.width, S.h / cv.height); L.sx = L.sy = k; }
+  return addLayer(L);
+}
+async function fileToCanvas(f) {
+  const bmp = await createImageBitmap(f); const c = mk(bmp.width, bmp.height); c.getContext('2d').drawImage(bmp, 0, 0); bmp.close && bmp.close(); return c;
+}
+async function openFiles(files) {
+  for (const f of files) {
+    try {
+      if (/\.(json|e2d)$/i.test(f.name)) { await loadProject(JSON.parse(await f.text())); continue; }
+      if (!/^image\//.test(f.type) && !/\.(png|jpe?g|webp|gif|bmp|avif)$/i.test(f.name)) { toast('Format tidak disokong: ' + f.name, 1); continue; }
+      const cv = await fileToCanvas(f);
+      if (!S.w) { newDoc(cv.width, cv.height, 300, 'transparent'); addLayer(newLayer('img', cv, f.name.replace(/\.[^.]+$/, ''))); }
+      else addImageCanvas(cv, f.name.replace(/\.[^.]+$/, ''));
+    } catch (e) { toast('Gagal buka ' + f.name + ': ' + e.message, 1); }
+  }
+  $('#welcome').classList.remove('show');
+}
+
+// ---------- paparan ----------
+const cv = $('#cv'), stage = $('#stage');
+let raf = 0;
+const redraw = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); };
+function sizeCanvas() { const r = stage.getBoundingClientRect(), d = devicePixelRatio || 1; cv.width = Math.round(r.width * d); cv.height = Math.round(r.height * d); redraw(); }
+new ResizeObserver(sizeCanvas).observe(stage);
+function fitView() { const r = stage.getBoundingClientRect(); if (!S.w) return; const z = Math.min((r.width - 60) / S.w, (r.height - 60) / S.h); S.z = clamp(z, 0.02, 8); S.px = (r.width - S.w * S.z) / 2; S.py = (r.height - S.h * S.z) / 2; zlbl(); redraw(); }
+function zoomAt(f, cx, cy) { const r = stage.getBoundingClientRect(); cx = cx ?? r.width / 2; cy = cy ?? r.height / 2; const nz = clamp(S.z * f, 0.02, 32); const k = nz / S.z; S.px = cx - (cx - S.px) * k; S.py = cy - (cy - S.py) * k; S.z = nz; zlbl(); redraw(); }
+const zlbl = () => $('#zlbl').textContent = Math.round(S.z * 100) + '%';
+const toDoc = (sx, sy) => ({ x: (sx - S.px) / S.z, y: (sy - S.py) / S.z });
+let chk = null;
+function chkPat(x) { if (!chk) { const c = mk(16, 16), g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, 16, 16); g.fillStyle = '#d4d4d8'; g.fillRect(0, 0, 8, 8); g.fillRect(8, 8, 8, 8); chk = c; } return x.createPattern(chk, 'repeat'); }
+function drawLayer(x, L, zs) {
+  if (!L.vis || !L.cv) return;
+  x.save(); x.globalAlpha = L.op; x.globalCompositeOperation = L.blend === 'normal' ? 'source-over' : L.blend;
+  x.translate(L.x, L.y); x.rotate(L.rot * Math.PI / 180); x.scale(L.sx, L.sy);
+  const s = L.fx.sh; if (s.on) { x.shadowColor = s.color; x.shadowBlur = s.blur * zs; x.shadowOffsetX = s.dx * zs; x.shadowOffsetY = s.dy * zs; }
+  x.imageSmoothingQuality = 'high'; x.drawImage(L.cv, -L.cv.width / 2, -L.cv.height / 2); x.restore();
+}
+function corners(L) {
+  const w = L.cv.width * L.sx / 2, h = L.cv.height * L.sy / 2, r = L.rot * Math.PI / 180, c = Math.cos(r), s = Math.sin(r);
+  return [[-w, -h], [w, -h], [w, h], [-w, h]].map(([a, b]) => ({ x: L.x + a * c - b * s, y: L.y + a * s + b * c }));
+}
+function render() {
+  const x = cv.getContext('2d'), d = devicePixelRatio || 1; x.setTransform(1, 0, 0, 1, 0, 0); x.fillStyle = '#121316'; x.fillRect(0, 0, cv.width, cv.height);
+  if (!S.w) return;
+  x.setTransform(d, 0, 0, d, 0, 0);
+  x.save(); x.shadowColor = '#000a'; x.shadowBlur = 24; x.fillStyle = '#000'; x.fillRect(S.px, S.py, S.w * S.z, S.h * S.z); x.restore();
+  if (S.bg === 'transparent') { x.save(); x.translate(S.px, S.py); x.fillStyle = chkPat(x); x.fillRect(0, 0, S.w * S.z, S.h * S.z); x.restore(); } else { x.fillStyle = S.bg; x.fillRect(S.px, S.py, S.w * S.z, S.h * S.z); }
+  x.save(); x.beginPath(); x.rect(S.px, S.py, S.w * S.z, S.h * S.z); x.clip();
+  x.setTransform(d * S.z, 0, 0, d * S.z, d * S.px, d * S.py);
+  for (const L of S.layers) drawLayer(x, L, S.z * d);
+  x.restore(); x.setTransform(d, 0, 0, d, 0, 0);
+  if (S.noOv) return;
+  const L = selLayer();
+  if (L && L.vis && (S.tool === 'move')) {
+    const cs = corners(L).map(p => ({ x: S.px + p.x * S.z, y: S.py + p.y * S.z }));
+    x.strokeStyle = '#4c8dff'; x.lineWidth = 1.5; x.beginPath(); cs.forEach((p, i) => i ? x.lineTo(p.x, p.y) : x.moveTo(p.x, p.y)); x.closePath(); x.stroke();
+    x.fillStyle = '#fff'; for (const p of cs) { x.fillRect(p.x - 4, p.y - 4, 8, 8); x.strokeRect(p.x - 4, p.y - 4, 8, 8); }
+    const rh = rotHandle(L); x.beginPath(); x.moveTo((cs[0].x + cs[1].x) / 2, (cs[0].y + cs[1].y) / 2); x.lineTo(rh.x, rh.y); x.stroke(); x.beginPath(); x.arc(rh.x, rh.y, 6, 0, 7); x.fill(); x.stroke();
+  }
+  if (S.guides.length) { x.strokeStyle = '#ff3d8b'; x.lineWidth = 1; for (const g of S.guides) { x.beginPath(); if (g.v) { x.moveTo(S.px + g.v * S.z, S.py); x.lineTo(S.px + g.v * S.z, S.py + S.h * S.z); } else { x.moveTo(S.px, S.py + g.h * S.z); x.lineTo(S.px + S.w * S.z, S.py + g.h * S.z); } x.stroke(); } }
+  if (drag && drag.mode === 'shape' && drag.cur) { const a = drag.p0, b = drag.cur; x.strokeStyle = '#fff'; x.setLineDash([5, 4]); x.lineWidth = 1.2; x.beginPath(); if (S.shape === 'line') { x.moveTo(S.px + a.x * S.z, S.py + a.y * S.z); x.lineTo(S.px + b.x * S.z, S.py + b.y * S.z); } else if (S.shape === 'ellipse') x.ellipse(S.px + (a.x + b.x) / 2 * S.z, S.py + (a.y + b.y) / 2 * S.z, Math.abs(b.x - a.x) / 2 * S.z, Math.abs(b.y - a.y) / 2 * S.z, 0, 0, 7); else x.rect(S.px + Math.min(a.x, b.x) * S.z, S.py + Math.min(a.y, b.y) * S.z, Math.abs(b.x - a.x) * S.z, Math.abs(b.y - a.y) * S.z); x.stroke(); x.setLineDash([]); }
+  if ((S.tool === 'brush' || S.tool === 'eraser') && hover) { x.strokeStyle = '#fff'; x.lineWidth = 1; x.beginPath(); x.arc(hover.sx, hover.sy, Math.max(1, S.size * S.z / 2), 0, 7); x.stroke(); x.strokeStyle = '#000'; x.beginPath(); x.arc(hover.sx, hover.sy, Math.max(1, S.size * S.z / 2) + 1, 0, 7); x.stroke(); }
+}
+function rotHandle(L) { const cs = corners(L), mx = (cs[0].x + cs[1].x) / 2, my = (cs[0].y + cs[1].y) / 2, cx = L.x, cy = L.y; let dx = mx - cx, dy = my - cy; const l = Math.hypot(dx, dy) || 1; return { x: S.px + (mx + dx / l * 28 / S.z) * S.z, y: S.py + (my + dy / l * 28 / S.z) * S.z }; }
+
+// ---------- teks / bentuk -> bitmap ----------
+function textDefaults() { return { text: 'Teks baru', font: 'Arial', size: Math.max(24, Math.round(S.h / 14)), bold: false, italic: false, color: S.fg, align: 'center', lh: 1.15, ls: 0, sw: 0, sc: '#000000' }; }
+function renderText(L) {
+  const t = L.t, lines = String(t.text).split('\n'), font = `${t.italic ? 'italic ' : ''}${t.bold ? '700 ' : '400 '}${t.size}px "${t.font}", sans-serif`;
+  const m = mk(4, 4).getContext('2d'); m.font = font; if ('letterSpacing' in m) m.letterSpacing = t.ls + 'px';
+  let w = 1; for (const ln of lines) w = Math.max(w, m.measureText(ln).width);
+  const pad = Math.ceil(t.sw + t.size * 0.25), lh = t.size * t.lh, W = Math.ceil(w + pad * 2), H = Math.ceil(lh * lines.length + pad * 2 + t.size * 0.1);
+  const c = mk(W, H), g = c.getContext('2d'); g.font = font; g.textBaseline = 'middle'; if ('letterSpacing' in g) g.letterSpacing = t.ls + 'px';
+  g.textAlign = t.align; const ax = t.align === 'left' ? pad : t.align === 'right' ? W - pad : W / 2;
+  lines.forEach((ln, i) => { const y = pad + lh * (i + 0.5) + t.size * 0.05; if (t.sw > 0) { g.lineJoin = 'round'; g.lineWidth = t.sw * 2; g.strokeStyle = t.sc; g.strokeText(ln, ax, y); } g.fillStyle = t.color; g.fillText(ln, ax, y); });
+  L.cv = c; L.name = (lines[0] || 'Teks').slice(0, 24);
+}
+function renderShape(L) {
+  const t = L.t, pad = Math.ceil(t.sw / 2) + 1, W = Math.max(2, Math.ceil(t.w) + pad * 2), H = Math.max(2, Math.ceil(t.h) + pad * 2), c = mk(W, H), g = c.getContext('2d');
+  g.lineWidth = t.sw; g.strokeStyle = t.stroke; g.fillStyle = t.fill; g.lineCap = 'round';
+  if (t.shape === 'line') { g.strokeStyle = t.sw > 0 ? t.stroke : t.fill; g.lineWidth = Math.max(t.sw, 3); g.beginPath(); g.moveTo(t.fx ? W - pad : pad, t.fy ? H - pad : pad); g.lineTo(t.fx ? pad : W - pad, t.fy ? pad : H - pad); g.stroke(); }
+  else { g.beginPath(); if (t.shape === 'ellipse') g.ellipse(W / 2, H / 2, t.w / 2, t.h / 2, 0, 0, 7); else if (t.shape === 'rrect') g.roundRect(pad, pad, t.w, t.h, Math.min(t.w, t.h) * 0.18); else g.rect(pad, pad, t.w, t.h); g.fill(); if (t.sw > 0) g.stroke(); }
+  L.cv = c;
+}
+function addText(x, y) {
+  const L = newLayer('text', mk(2, 2), 'Teks', { x, y }); L.t = textDefaults(); renderText(L); addLayer(L); setTool('move'); setTimeout(() => { const ta = $('#tText'); if (ta) { ta.focus(); ta.select(); } }, 30);
+}
+
+// ---------- alat & tetikus ----------
+let drag = null, hover = null;
+function setTool(t) { S.tool = t; $$('#tools [data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === t)); $$('#opts .og').forEach(g => g.style.display = g.dataset.for.split(' ').includes(t) ? 'flex' : 'none'); stage.style.cursor = { move: 'default', hand: 'grab', brush: 'none', eraser: 'none', text: 'text', shape: 'crosshair', eyedrop: 'crosshair' }[t]; redraw(); }
+function layerAt(px, py) {
+  for (let i = S.layers.length - 1; i >= 0; i--) {
+    const L = S.layers[i]; if (!L.vis || L.lock) continue;
+    const l = toLocal(L, px, py); const w = L.cv.width, h = L.cv.height;
+    if (l.x < 0 || l.y < 0 || l.x >= w || l.y >= h) continue;
+    if (L.kind === 'img') { try { if (L.cv.getContext('2d', { willReadFrequently: true }).getImageData(l.x | 0, l.y | 0, 1, 1).data[3] < 10) continue; } catch (e) {} }
+    return L;
+  }
+  return null;
+}
+function toLocal(L, px, py) { const r = -L.rot * Math.PI / 180, c = Math.cos(r), s = Math.sin(r), dx = px - L.x, dy = py - L.y; return { x: (dx * c - dy * s) / L.sx + L.cv.width / 2, y: (dx * s + dy * c) / L.sy + L.cv.height / 2 }; }
+function hitHandle(L, sx, sy) {
+  const rh = rotHandle(L); if (Math.hypot(sx - rh.x, sy - rh.y) < 10) return { rot: 1 };
+  const cs = corners(L); for (let i = 0; i < 4; i++) { const px = S.px + cs[i].x * S.z, py = S.py + cs[i].y * S.z; if (Math.abs(sx - px) < 8 && Math.abs(sy - py) < 8) return { corner: i }; } return null;
+}
+const evPos = e => { const r = stage.getBoundingClientRect(); return { sx: e.clientX - r.left, sy: e.clientY - r.top }; };
+stage.addEventListener('pointerdown', e => {
+  if (!S.w) return; stage.setPointerCapture(e.pointerId);
+  const { sx, sy } = evPos(e), p = toDoc(sx, sy), L = selLayer();
+  if (e.button === 1 || S.tool === 'hand' || S.space) { drag = { mode: 'pan', sx, sy, px: S.px, py: S.py }; stage.style.cursor = 'grabbing'; return; }
+  if (e.button !== 0) return;
+  if (S.tool === 'move') {
+    if (L && L.vis && !L.lock) { const h = hitHandle(L, sx, sy); if (h) { drag = h.rot ? { mode: 'rot', L, r0: L.rot, p } : { mode: 'scale', L, i: h.corner, s0: { sx: L.sx, sy: L.sy }, d0: Math.hypot(p.x - L.x, p.y - L.y) || 1, free: e.shiftKey }; return; } }
+    const hit = layerAt(p.x, p.y); if (hit) { S.sel = hit.id; refreshAll(); drag = { mode: 'move', L: hit, p, x0: hit.x, y0: hit.y, moved: false }; } else { S.sel = null; refreshAll(); }
+  } else if (S.tool === 'text') { const hit = layerAt(p.x, p.y); if (hit && hit.kind === 'text') { S.sel = hit.id; refreshAll(); setTool('move'); } else addText(p.x, p.y); }
+  else if (S.tool === 'shape') { drag = { mode: 'shape', p0: p, cur: p }; }
+  else if (S.tool === 'eyedrop') { pickColor(sx, sy, e.altKey); }
+  else if (S.tool === 'brush' || S.tool === 'eraser') startStroke(p, e);
+});
+stage.addEventListener('pointermove', e => {
+  const { sx, sy } = evPos(e), p = toDoc(sx, sy); hover = { sx, sy }; $('#sPos').textContent = S.w ? `x ${Math.round(p.x)}  y ${Math.round(p.y)}` : '';
+  if (!drag) { if (S.tool === 'move' && S.w) { const L = selLayer(); stage.style.cursor = L && hitHandle(L, sx, sy) ? 'pointer' : 'default'; } if (S.tool === 'brush' || S.tool === 'eraser') redraw(); return; }
+  if (drag.mode === 'pan') { S.px = drag.px + sx - drag.sx; S.py = drag.py + sy - drag.sy; redraw(); }
+  else if (drag.mode === 'move') {
+    const L = drag.L; if (L.lock) return; let nx = drag.x0 + p.x - drag.p.x, ny = drag.y0 + p.y - drag.p.y;
+    if (!e.ctrlKey) { const sv = snapMove(L, nx, ny); nx = sv.x; ny = sv.y; S.guides = sv.g; }
+    if (Math.hypot(p.x - drag.p.x, p.y - drag.p.y) > 1) drag.moved = true; L.x = nx; L.y = ny; redraw(); renderPropsPos();
+  } else if (drag.mode === 'scale') {
+    const L = drag.L;
+    if (e.shiftKey) { const l = toLocal(L, p.x, p.y), hw = L.cv.width / 2, hh = L.cv.height / 2, lx = l.x - hw, ly = l.y - hh; const k = [[-1, -1], [1, -1], [1, 1], [-1, 1]][drag.i]; L.sx = Math.sign(drag.s0.sx || 1) * Math.max(0.01, Math.abs(lx * L.sx / hw)) ; L.sy = Math.sign(drag.s0.sy || 1) * Math.max(0.01, Math.abs(ly * L.sy / hh)); }
+    else { const k = Math.hypot(p.x - L.x, p.y - L.y) / drag.d0; L.sx = drag.s0.sx * k; L.sy = drag.s0.sy * k; }
+    redraw(); renderPropsPos();
+  } else if (drag.mode === 'rot') {
+    const L = drag.L; let a = Math.atan2(p.y - L.y, p.x - L.x) * 180 / Math.PI + 90; if (e.shiftKey) a = Math.round(a / 15) * 15; L.rot = ((a % 360) + 540) % 360 - 180; redraw(); renderPropsPos();
+  } else if (drag.mode === 'shape') { drag.cur = p; redraw(); }
+  else if (drag.mode === 'stroke') strokeTo(p);
+});
+function snapMove(L, nx, ny) {
+  const ox = L.x, oy = L.y; L.x = nx; L.y = ny; const cs = corners(L); L.x = ox; L.y = oy;
+  const xs = cs.map(c => c.x), ys = cs.map(c => c.y), bl = Math.min(...xs), br = Math.max(...xs), bt = Math.min(...ys), bb = Math.max(...ys), th = 7 / S.z, g = [];
+  let dx = 0, dy = 0, bx = th, by = th;
+  for (const [v, tg] of [[bl, 0], [br, S.w], [(bl + br) / 2, S.w / 2], [bl, S.w / 2], [br, S.w / 2]]) { const d = tg - v; if (Math.abs(d) < bx) { bx = Math.abs(d); dx = d; } }
+  for (const [v, tg] of [[bt, 0], [bb, S.h], [(bt + bb) / 2, S.h / 2]]) { const d = tg - v; if (Math.abs(d) < by) { by = Math.abs(d); dy = d; } }
+  if (dx) g.push({ v: [0, S.w, S.w / 2].find(t => Math.abs([bl, br, (bl + br) / 2].map(v => v + dx).reduce((a, v) => Math.abs(v - t) < Math.abs(a - t) ? v : a, 1e9) - t) < 0.5) ?? S.w / 2 });
+  if (dy) g.push({ h: [0, S.h, S.h / 2].find(t => Math.abs([bt, bb, (bt + bb) / 2].map(v => v + dy).reduce((a, v) => Math.abs(v - t) < Math.abs(a - t) ? v : a, 1e9) - t) < 0.5) ?? S.h / 2 });
+  return { x: nx + dx, y: ny + dy, g };
+}
+stage.addEventListener('pointerup', e => {
+  if (!drag) return; const d = drag; drag = null; S.guides = []; stage.style.cursor = ''; setTool(S.tool);
+  if (d.mode === 'move' && d.moved) commit(); else if (d.mode === 'scale' || d.mode === 'rot') commit();
+  else if (d.mode === 'shape') finishShape(d); else if (d.mode === 'stroke') { commit(); refreshLayers(); }
+  redraw();
+});
+stage.addEventListener('dblclick', e => { if (S.tool !== 'move') return; const { sx, sy } = evPos(e), p = toDoc(sx, sy), h = layerAt(p.x, p.y); if (h && h.kind === 'text') { S.sel = h.id; refreshAll(); const ta = $('#tText'); if (ta) { ta.focus(); ta.select(); } } });
+stage.addEventListener('wheel', e => { if (!S.w) return; e.preventDefault(); const { sx, sy } = evPos(e); zoomAt(Math.exp(-e.deltaY * 0.0015), sx, sy); }, { passive: false });
+stage.addEventListener('pointerleave', () => { hover = null; redraw(); });
+function pickColor(sx, sy, alt) {
+  S.noOv = true; render(); S.noOv = false; const d = devicePixelRatio || 1;
+  try { const p = cv.getContext('2d').getImageData(Math.round(sx * d), Math.round(sy * d), 1, 1).data; const hex = '#' + [p[0], p[1], p[2]].map(v => v.toString(16).padStart(2, '0')).join(''); if (alt) S.bk = hex; else S.fg = hex; $('#cFg').value = S.fg; $('#cBk').value = S.bk; } catch (e) {}
+  redraw();
+}
+function finishShape(d) {
+  const a = d.p0, b = d.cur; let w = Math.abs(b.x - a.x), h = Math.abs(b.y - a.y); if (w < 3 && h < 3) { w = Math.round(S.w / 5); h = S.shape === 'line' ? 0 : Math.round(S.w / 5); b.x = a.x + w; b.y = a.y + h; }
+  const L = newLayer('shape', mk(2, 2), { rect: 'Segi empat', rrect: 'Segi empat', ellipse: 'Elips', line: 'Garisan' }[S.shape], { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+  L.t = { shape: S.shape, w: Math.max(2, w), h: Math.max(2, h), fill: S.sfill, stroke: S.sstroke, sw: S.sw, fx: b.x < a.x ? 1 : 0, fy: b.y < a.y ? 1 : 0 };
+  if (S.shape === 'line') { L.t.fx = (b.x < a.x) !== (b.y < a.y) ? 1 : 0; L.t.fy = 0; }
+  renderShape(L); addLayer(L); setTool('move');
+}
+
+// ---------- berus ----------
+let stroke = null;
+function tipCanvas(d, hard, color) {
+  const c = mk(Math.ceil(d) + 2, Math.ceil(d) + 2), g = c.getContext('2d'), r = d / 2, cx = c.width / 2, cy = c.height / 2;
+  const gr = g.createRadialGradient(cx, cy, Math.max(0, r * hard - 0.5), cx, cy, r); gr.addColorStop(0, color); const tr = color.length === 7 ? color + '00' : color; gr.addColorStop(1, tr);
+  g.fillStyle = gr; g.beginPath(); g.arc(cx, cy, r + 0.5, 0, 7); g.fill(); return c;
+}
+function startStroke(p, e) {
+  let L = selLayer();
+  if (!L || L.kind !== 'img' || L.lock || !L.vis) { L = newLayer('img', mk(S.w, S.h), 'Lukisan'); S.layers.push(L); S.sel = L.id; refreshAll(); }
+  L.cv = cloneCv(L.cv); stroke = { L, last: null, acc: 0, erase: S.tool === 'eraser' };
+  const avg = (Math.abs(L.sx) + Math.abs(L.sy)) / 2, d = Math.max(1, S.size / avg);
+  stroke.tip = tipCanvas(d, S.hard, stroke.erase ? '#000000' : S.fg); stroke.d = d; drag = { mode: 'stroke' }; strokeTo(p);
+}
+function strokeTo(p) {
+  const st = stroke; if (!st) return; const L = st.L, l = toLocal(L, p.x, p.y), g = L.cv.getContext('2d'), sp = Math.max(0.75, st.d * 0.12);
+  g.globalAlpha = S.flow; g.globalCompositeOperation = st.erase ? 'destination-out' : 'source-over';
+  const put = (x, y) => g.drawImage(st.tip, x - st.tip.width / 2, y - st.tip.height / 2);
+  if (!st.last) { put(l.x, l.y); st.last = l; } else {
+    const dx = l.x - st.last.x, dy = l.y - st.last.y, len = Math.hypot(dx, dy); let pos = st.acc;
+    while (pos <= len) { put(st.last.x + dx * pos / (len || 1), st.last.y + dy * pos / (len || 1)); pos += sp; }
+    st.acc = pos - len; st.last = l;
+  }
+  g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; redraw();
+}
+
+// ---------- UI lapisan & sifat ----------
+function refreshAll() { refreshLayers(); renderProps(); docInfo(); redraw(); }
+function docInfo() { $('#sDoc').textContent = S.w ? `${S.w} × ${S.h} px · ${S.dpi} dpi · ${(S.w / S.dpi * 2.54).toFixed(1)} × ${(S.h / S.dpi * 2.54).toFixed(1)} cm` : 'Tiada dokumen'; const L = selLayer(); $('#sSel').textContent = L ? `${L.name}: ${L.cv.width}×${L.cv.height}px` : ''; }
+function refreshLayers() {
+  const box = $('#layers'); box.innerHTML = '';
+  [...S.layers].reverse().forEach(L => {
+    const d = document.createElement('div'); d.className = 'ly' + (L.id === S.sel ? ' sel' : '') + (L.vis ? '' : ' hid');
+    const t = mk(76, 76), g = t.getContext('2d'), k = Math.min(76 / L.cv.width, 76 / L.cv.height); g.drawImage(L.cv, (76 - L.cv.width * k) / 2, (76 - L.cv.height * k) / 2, L.cv.width * k, L.cv.height * k);
+    d.appendChild(t); const n = document.createElement('span'); n.className = 'nm'; n.textContent = L.name; d.appendChild(n);
+    const ev = document.createElement('button'); ev.className = 'ic'; ev.textContent = L.vis ? '👁' : '—'; ev.onclick = e => { e.stopPropagation(); L.vis = !L.vis; refreshLayers(); redraw(); commit(); }; d.appendChild(ev);
+    const lk = document.createElement('button'); lk.className = 'ic'; lk.textContent = L.lock ? '🔒' : '🔓'; lk.onclick = e => { e.stopPropagation(); L.lock = !L.lock; refreshLayers(); commit(); }; d.appendChild(lk);
+    d.onclick = () => { S.sel = L.id; refreshAll(); };
+    n.ondblclick = () => { const v = prompt('Nama lapisan', L.name); if (v) { L.name = v; refreshLayers(); commit(); } };
+    box.appendChild(d);
+  });
+}
+function renderPropsPos() { const L = selLayer(); if (!L) return; const a = $('#pScale'), b = $('#pRot'); if (a) a.value = Math.round(Math.abs(L.sx) * 1000) / 10; if (b) b.value = Math.round(L.rot); docInfo(); }
+function row(label, html) { return `<div class="row"><label>${label}</label>${html}</div>`; }
+function renderProps() {
+  const P = $('#props'), L = selLayer(); if (!L) { P.innerHTML = '<h4>Sifat</h4><div class="hint">Pilih atau tambah lapisan. Gunakan <b>T</b> untuk teks, <b>U</b> untuk bentuk, atau buka gambar.</div>'; return; }
+  let h = `<h4>${L.kind === 'text' ? 'Teks' : L.kind === 'shape' ? 'Bentuk' : 'Imej'} — ${L.name}</h4>`;
+  if (L.kind === 'text') {
+    const t = L.t; h += `<textarea id="tText">${t.text.replace(/</g, '&lt;')}</textarea>`;
+    h += row('Fon', `<select id="tFont">${[...new Set([...FONTS, t.font])].map(f => `<option ${f === t.font ? 'selected' : ''}>${f}</option>`).join('')}</select><button id="tLoadFont" title="Muat fon sendiri">＋</button>`);
+    h += row('Saiz', `<input type="number" id="tSize" value="${t.size}" min="4" max="2000"><input type="color" id="tColor" value="${t.color}">`);
+    h += `<div class="row btns"><button id="tB" class="${t.bold ? 'on' : ''}"><b>B</b></button><button id="tI" class="${t.italic ? 'on' : ''}"><i>I</i></button><button data-al="left" class="${t.align === 'left' ? 'on' : ''}">⇤</button><button data-al="center" class="${t.align === 'center' ? 'on' : ''}">↔</button><button data-al="right" class="${t.align === 'right' ? 'on' : ''}">⇥</button></div>`;
+    h += row('Jarak huruf', `<input type="range" id="tLs" min="-5" max="40" value="${t.ls}">`) + row('Jarak baris', `<input type="range" id="tLh" min="80" max="250" value="${Math.round(t.lh * 100)}">`);
+    h += row('Garis tepi', `<input type="range" id="tSw" min="0" max="${Math.max(20, Math.round(t.size / 3))}" value="${t.sw}"><input type="color" id="tSc" value="${t.sc}">`);
+  }
+  if (L.kind === 'shape') { const t = L.t; h += row('Isi', `<input type="color" id="shFill" value="${t.fill}">`) + row('Garis', `<input type="color" id="shStroke" value="${t.stroke}"><input type="number" id="shSw" value="${t.sw}" min="0" max="300">`); }
+  h += row('Lutsinar', `<input type="range" id="pOp" min="0" max="100" value="${Math.round(L.op * 100)}">`);
+  h += row('Adunan', `<select id="pBl">${['normal', 'multiply', 'screen', 'overlay', 'darken', 'lighten', 'color-dodge', 'color-burn', 'hard-light', 'soft-light', 'difference', 'exclusion', 'hue', 'saturation', 'color', 'luminosity'].map(b => `<option ${b === L.blend ? 'selected' : ''}>${b}</option>`).join('')}</select>`);
+  h += row('Skala %', `<input type="number" id="pScale" value="${Math.round(Math.abs(L.sx) * 1000) / 10}" min="1" max="2000"><label style="width:auto">Putar°</label><input type="number" id="pRot" value="${Math.round(L.rot)}">`);
+  const s = L.fx.sh; h += row('Bayang', `<input type="checkbox" id="fxOn" ${s.on ? 'checked' : ''} style="flex:none"><input type="color" id="fxC" value="${s.color}"><input type="range" id="fxB" min="0" max="80" value="${s.blur}" title="Kabur">`);
+  if (s.on) h += row('Offset', `<input type="number" id="fxX" value="${s.dx}"><input type="number" id="fxY" value="${s.dy}">`);
+  h += `<div class="row btns"><button id="pCenter">Tengah</button><button id="pFill">Penuhi dokumen</button><button id="pFlipV">Balik ↕</button></div>`;
+  P.innerHTML = h; bindProps(L);
+}
+function bindProps(L) {
+  const g = id => $('#' + id), live = fn => { fn(); redraw(); refreshLayers(); commitSoon(); docInfo(); };
+  const reT = () => { const x = L.x, y = L.y; renderText(L); L.x = x; L.y = y; };
+  if (L.kind === 'text') {
+    const t = L.t;
+    g('tText').oninput = e => live(() => { t.text = e.target.value || ' '; reT(); }); g('tFont').onchange = e => live(() => { t.font = e.target.value; reT(); });
+    g('tSize').oninput = e => live(() => { t.size = clamp(+e.target.value || 12, 4, 2000); reT(); }); g('tColor').oninput = e => live(() => { t.color = e.target.value; reT(); });
+    g('tB').onclick = () => { t.bold = !t.bold; live(reT); renderProps(); }; g('tI').onclick = () => { t.italic = !t.italic; live(reT); renderProps(); };
+    $$('#props [data-al]').forEach(b => b.onclick = () => { t.align = b.dataset.al; live(reT); renderProps(); });
+    g('tLs').oninput = e => live(() => { t.ls = +e.target.value; reT(); }); g('tLh').oninput = e => live(() => { t.lh = e.target.value / 100; reT(); });
+    g('tSw').oninput = e => live(() => { t.sw = +e.target.value; reT(); }); g('tSc').oninput = e => live(() => { t.sc = e.target.value; reT(); });
+    g('tLoadFont').onclick = () => $('#fontIn').click();
+  }
+  if (L.kind === 'shape') { const t = L.t, rs = () => { const x = L.x, y = L.y; renderShape(L); L.x = x; L.y = y; }; g('shFill').oninput = e => live(() => { t.fill = e.target.value; rs(); }); g('shStroke').oninput = e => live(() => { t.stroke = e.target.value; rs(); }); g('shSw').oninput = e => live(() => { t.sw = +e.target.value || 0; rs(); }); }
+  g('pOp').oninput = e => live(() => L.op = e.target.value / 100); g('pBl').onchange = e => live(() => L.blend = e.target.value);
+  g('pScale').onchange = e => live(() => { const k = clamp(+e.target.value, 1, 2000) / 100; L.sx = Math.sign(L.sx || 1) * k; L.sy = Math.sign(L.sy || 1) * k; });
+  g('pRot').onchange = e => live(() => L.rot = +e.target.value || 0);
+  g('fxOn').onchange = e => { L.fx.sh.on = e.target.checked; live(() => 0); renderProps(); };
+  g('fxC').oninput = e => live(() => L.fx.sh.color = e.target.value); g('fxB').oninput = e => live(() => L.fx.sh.blur = +e.target.value);
+  if (g('fxX')) { g('fxX').onchange = e => live(() => L.fx.sh.dx = +e.target.value || 0); g('fxY').onchange = e => live(() => L.fx.sh.dy = +e.target.value || 0); }
+  g('pCenter').onclick = () => { L.x = S.w / 2; L.y = S.h / 2; redraw(); commit(); };
+  g('pFill').onclick = () => { const k = Math.max(S.w / L.cv.width, S.h / L.cv.height); L.sx = Math.sign(L.sx) * k; L.sy = Math.sign(L.sy) * k; L.x = S.w / 2; L.y = S.h / 2; refreshAll(); commit(); };
+  g('pFlipV').onclick = () => { L.sy = -L.sy; redraw(); commit(); };
+}
+$('#fontIn').onchange = async e => { const f = e.target.files[0]; if (!f) return; try { const name = f.name.replace(/\.[^.]+$/, ''); const ff = new FontFace(name, await f.arrayBuffer()); await ff.load(); document.fonts.add(ff); if (!FONTS.includes(name)) FONTS.unshift(name); const L = selLayer(); if (L && L.kind === 'text') { L.t.font = name; const x = L.x, y = L.y; renderText(L); L.x = x; L.y = y; commit(); } refreshAll(); toast('Fon dimuat: ' + name); } catch (er) { toast('Fon gagal dimuat', 1); } e.target.value = ''; };
+
+// ---------- operasi lapisan ----------
+function moveLayer(d) { const L = selLayer(); if (!L) return; const i = S.layers.indexOf(L), j = i + d; if (j < 0 || j >= S.layers.length) return; S.layers.splice(i, 1); S.layers.splice(j, 0, L); refreshAll(); commit(); }
+function dupLayer() { const L = selLayer(); if (!L) return; const n = snapLayer(L); n.id = UID++; n.name = L.name + ' kopi'; n.cv = cloneCv(L.cv); n.x += 20; n.y += 20; S.layers.splice(S.layers.indexOf(L) + 1, 0, n); S.sel = n.id; refreshAll(); commit(); }
+function delLayer() { const L = selLayer(); if (!L) return; const i = S.layers.indexOf(L); S.layers.splice(i, 1); S.sel = S.layers[Math.max(0, i - 1)]?.id ?? null; refreshAll(); commit(); }
+function flipH() { const L = selLayer(); if (!L) return; L.sx = -L.sx; redraw(); commit(); }
+function rasterize(L) { const c = mk(S.w, S.h), x = c.getContext('2d'); drawLayer(x, Object.assign({}, L, { op: 1, blend: 'normal' }), 1); return c; }
+function mergeDown() {
+  const L = selLayer(); if (!L) return; const i = S.layers.indexOf(L); if (i < 1) { toast('Tiada lapisan di bawah', 1); return; }
+  const B = S.layers[i - 1], c = mk(S.w, S.h), x = c.getContext('2d'); drawLayer(x, B, 1); drawLayer(x, L, 1);
+  const n = newLayer('img', c, B.name, { op: 1 }); S.layers.splice(i - 1, 2, n); S.sel = n.id; refreshAll(); commit();
+}
+function trimLayer() {
+  const L = selLayer(); if (!L || L.kind === 'shape' && false) return; const c = L.cv, w = c.width, h = c.height, d = c.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, w, h).data;
+  let x0 = w, y0 = h, x1 = -1, y1 = -1; for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (d[(y * w + x) * 4 + 3] > 4) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  if (x1 < 0) { toast('Lapisan kosong', 1); return; } if (x0 === 0 && y0 === 0 && x1 === w - 1 && y1 === h - 1) { toast('Tiada ruang lutsinar untuk dipotong'); return; }
+  const nw = x1 - x0 + 1, nh = y1 - y0 + 1, n = mk(nw, nh); n.getContext('2d').drawImage(c, x0, y0, nw, nh, 0, 0, nw, nh);
+  const ox = (x0 + nw / 2) - w / 2, oy = (y0 + nh / 2) - h / 2, r = L.rot * Math.PI / 180, cs = Math.cos(r), sn = Math.sin(r), px = ox * L.sx, py = oy * L.sy;
+  L.x += px * cs - py * sn; L.y += px * sn + py * cs; L.cv = n; if (L.kind !== 'img') L.kind = 'img'; refreshAll(); commit(); toast(`Dipotong: ${nw}×${nh}px`);
+}
+
+// ---------- modal helper ----------
+const show = id => $('#' + id).classList.add('show'), hide = id => $('#' + id).classList.remove('show');
+$$('[data-close]').forEach(b => b.onclick = () => b.closest('.modal').classList.remove('show'));
+
+// ---------- dokumen baru ----------
+const PRESETS = [['A4 300dpi', 2480, 3508, 300], ['A5 300dpi', 1748, 2480, 300], ['A3 300dpi', 3508, 4961, 300], ['Kad nama 300dpi', 1050, 600, 300], ['Instagram 1080', 1080, 1080, 72], ['Cerita 1080×1920', 1080, 1920, 72], ['Banner FB 1640×624', 1640, 624, 72], ['HD 1920×1080', 1920, 1080, 72]];
+$('#npPresets').innerHTML = PRESETS.map((p, i) => `<button data-i="${i}">${p[0]}</button>`).join('');
+$$('#npPresets button').forEach(b => b.onclick = () => { const p = PRESETS[b.dataset.i]; $('#npU').value = 'px'; $('#npW').value = p[1]; $('#npH').value = p[2]; $('#npDpi').value = p[3]; npInfo(); });
+const UNIT = { px: null, cm: 1 / 2.54, mm: 1 / 25.4, in: 1 };
+function npPx() { const u = $('#npU').value, dpi = +$('#npDpi').value || 300, k = UNIT[u] == null ? 1 : UNIT[u] * dpi; return { w: Math.round($('#npW').value * k), h: Math.round($('#npH').value * k), dpi }; }
+function npInfo() { const p = npPx(); $('#npInfo').textContent = `Hasil: ${p.w} × ${p.h} px (${(p.w * p.h / 1e6).toFixed(1)} MP)` + (p.w > 12000 || p.h > 12000 ? ' — terlalu besar, had 16000px' : ''); }
+['npW', 'npH', 'npU', 'npDpi'].forEach(i => $('#' + i).oninput = npInfo);
+$('#npU').onchange = () => { const u = $('#npU').value, dpi = +$('#npDpi').value || 300, p = npPx(); const k = UNIT[u] == null ? 1 : UNIT[u] * dpi; $('#npW').value = u === 'px' ? p.w : +(p.w / k).toFixed(2); $('#npH').value = u === 'px' ? p.h : +(p.h / k).toFixed(2); };
+$('#npOk').onclick = () => { const p = npPx(); if (p.w < 1 || p.h < 1 || p.w > 16000 || p.h > 16000) { toast('Saiz tidak sah', 1); return; } newDoc(p.w, p.h, p.dpi, $('#npBg').value); hide('mNew'); };
+const openNew = () => { show('mNew'); npInfo(); };
+$('#bNew').onclick = $('#wNew').onclick = openNew;
+
+// ---------- buka / simpan ----------
+$('#bOpen').onclick = $('#wOpen').onclick = $('#lyAddImg').onclick = () => $('#fileIn').click();
+$('#fileIn').onchange = e => { openFiles([...e.target.files]); e.target.value = ''; };
+$('#lyAddNew').onclick = () => { if (!S.w) return; addLayer(newLayer('img', mk(S.w, S.h), 'Lapisan ' + UID)); };
+addEventListener('dragover', e => e.preventDefault());
+addEventListener('drop', e => { e.preventDefault(); if (e.dataTransfer.files.length) openFiles([...e.dataTransfer.files]); });
+addEventListener('paste', e => { const it = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith('image/')); if (it) { openFiles([it.getAsFile()]); } });
+const dataUrlCache = new WeakMap();
+function cvUrl(c) { let u = dataUrlCache.get(c); if (!u) { u = c.toDataURL('image/png'); dataUrlCache.set(c, u); } return u; }
+function projectJSON() { return { v: 1, doc: { w: S.w, h: S.h, dpi: S.dpi, bg: S.bg }, sel: S.sel, layers: S.layers.map(L => ({ id: L.id, kind: L.kind, name: L.name, x: L.x, y: L.y, sx: L.sx, sy: L.sy, rot: L.rot, op: L.op, blend: L.blend, vis: L.vis, lock: L.lock, t: L.t, fx: L.fx, data: cvUrl(L.cv) })) }; }
+function loadImg(u) { return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = u; }); }
+async function loadProject(p) {
+  if (!p || !p.doc || !p.layers) throw new Error('Fail projek tidak sah');
+  Object.assign(S, { w: p.doc.w, h: p.doc.h, dpi: p.doc.dpi || 300, bg: p.doc.bg, layers: [], hist: [], hi: -1 });
+  for (const q of p.layers) { const im = await loadImg(q.data), c = mk(im.width, im.height); c.getContext('2d').drawImage(im, 0, 0); dataUrlCache.set(c, q.data); const L = newLayer(q.kind, c, q.name, { id: UID++, x: q.x, y: q.y, sx: q.sx, sy: q.sy, rot: q.rot, op: q.op, blend: q.blend, vis: q.vis, lock: q.lock, t: q.t || {}, fx: q.fx }); S.layers.push(L); if (q.id === p.sel) S.sel = L.id; }
+  if (!S.sel && S.layers.length) S.sel = S.layers[S.layers.length - 1].id; commit(); fitView(); refreshAll(); $('#welcome').classList.remove('show');
+}
+function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); }
+$('#bSave').onclick = () => { if (!S.w) return; download(new Blob([JSON.stringify(projectJSON())], { type: 'application/json' }), 'projek-' + new Date().toISOString().slice(0, 10) + '.e2d'); toast('Projek disimpan'); };
+
+// ---------- autosave (IndexedDB) ----------
+const idb = () => new Promise((res, rej) => { const r = indexedDB.open('proeditor2d', 1); r.onupgradeneeded = () => r.result.createObjectStore('k'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+async function idbSet(k, v) { const d = await idb(); return new Promise((res, rej) => { const t = d.transaction('k', 'readwrite'); t.objectStore('k').put(v, k); t.oncomplete = res; t.onerror = () => rej(t.error); }); }
+async function idbGet(k) { const d = await idb(); return new Promise((res, rej) => { const q = d.transaction('k').objectStore('k').get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); }
+function scheduleSave() { clearTimeout(saveT); saveT = setTimeout(async () => { if (!S.w) return; try { await idbSet('auto', JSON.stringify(projectJSON())); $('#sSave').textContent = 'Auto-simpan ' + new Date().toLocaleTimeString(); } catch (e) { $('#sSave').textContent = 'Auto-simpan gagal'; } }, 2500); }
+idbGet('auto').then(v => { if (v) { $('#wResume').style.display = ''; $('#wResume').onclick = async () => { try { await loadProject(JSON.parse(v)); } catch (e) { toast('Gagal sambung: ' + e.message, 1); } }; } }).catch(() => {});
+
+// ---------- eksport ----------
+const crcT = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+const crc32 = (b) => { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = crcT[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+function pngDpi(buf, dpi) {
+  const u = new Uint8Array(buf), ppm = Math.round(dpi / 0.0254), chunk = new Uint8Array(21), dv = new DataView(chunk.buffer);
+  dv.setUint32(0, 9); chunk.set([0x70, 0x48, 0x59, 0x73], 4); dv.setUint32(8, ppm); dv.setUint32(12, ppm); chunk[16] = 1; dv.setUint32(17, crc32(chunk.subarray(4, 17)));
+  const out = new Uint8Array(u.length + 21); out.set(u.subarray(0, 33)); out.set(chunk, 33); out.set(u.subarray(33), 54); return out;
+}
+function jpgDpi(buf, dpi) { const u = new Uint8Array(buf); if (u[2] === 0xFF && u[3] === 0xE0 && u[6] === 0x4A) { u[13] = 1; u[14] = dpi >> 8; u[15] = dpi & 255; u[16] = dpi >> 8; u[17] = dpi & 255; } return u; }
+function renderDoc(scale, forceBg) {
+  const W = Math.round(S.w * scale), H = Math.round(S.h * scale), c = mk(W, H), x = c.getContext('2d');
+  if (forceBg || S.bg !== 'transparent') { x.fillStyle = forceBg || S.bg; x.fillRect(0, 0, W, H); }
+  x.scale(scale, scale); for (const L of S.layers) drawLayer(x, L, scale); return c;
+}
+function exInfo() { const s = +$('#exS').value; $('#exInfo').textContent = `Hasil: ${Math.round(S.w * s)} × ${Math.round(S.h * s)} px @ ${Math.round(S.dpi * s)} dpi`; $('#exQr').style.display = $('#exF').value === 'png' ? 'none' : ''; }
+$('#bExport').onclick = () => { if (!S.w) return; show('mExp'); exInfo(); };
+['exF', 'exS'].forEach(i => $('#' + i).onchange = exInfo); $('#exQ').oninput = () => $('#exQv').textContent = $('#exQ').value;
+$('#exOk').onclick = async () => {
+  const f = $('#exF').value, s = +$('#exS').value, mime = { png: 'image/png', jpg: 'image/jpeg', webp: 'image/webp' }[f];
+  const white = f === 'jpg' || $('#exBg').value === 'white'; $('#exOk').disabled = true; await tick();
+  try {
+    const c = renderDoc(s, white && S.bg === 'transparent' ? '#ffffff' : null);
+    const blob = await new Promise(r => c.toBlob(r, mime, +$('#exQ').value / 100)); if (!blob) throw new Error('Pelayar tidak dapat menghasilkan fail (terlalu besar?)');
+    let out = blob; const dpi = Math.round(S.dpi * s);
+    if (f === 'png') out = new Blob([pngDpi(await blob.arrayBuffer(), dpi)], { type: mime }); else if (f === 'jpg') out = new Blob([jpgDpi(await blob.arrayBuffer(), dpi)], { type: mime });
+    download(out, 'rekaan.' + f); hide('mExp'); toast('Dieksport ' + c.width + '×' + c.height + 'px');
+  } catch (e) { toast('Eksport gagal: ' + e.message, 1); }
+  $('#exOk').disabled = false;
+};
+
+// ---------- saiz kanvas ----------
+$('#bSize')?.addEventListener('click', () => 0);
+function openCanvasSize() { if (!S.w) return; $('#csW').value = S.w; $('#csH').value = S.h; $('#csD').value = S.dpi; show('mCanvas'); }
+$('#sDoc').style.cursor = 'pointer'; $('#sDoc').title = 'Klik untuk ubah saiz kanvas'; $('#sDoc').onclick = openCanvasSize;
+$('#csOk').onclick = () => {
+  const w = clamp(+$('#csW').value | 0, 1, 16000), h = clamp(+$('#csH').value | 0, 1, 16000), a = $('#csA').value, ow = S.w, oh = S.h;
+  for (const L of S.layers) { if (a === 'c') { L.x += (w - ow) / 2; L.y += (h - oh) / 2; } else if (a === 's') { const k = Math.min(w / ow, h / oh); L.x = L.x * k + (w - ow * k) / 2; L.y = L.y * k + (h - oh * k) / 2; L.sx *= k; L.sy *= k; } }
+  S.w = w; S.h = h; S.dpi = +$('#csD').value || S.dpi; hide('mCanvas'); fitView(); refreshAll(); commit();
+};
+
+// ---------- laras imej ----------
+let ADJ = null;
+function adjustPixels(img, o) {
+  const d = img.data, n = d.length, br = o.br * 2.55, c = o.co * 2.55, f = (259 * (c + 255)) / (255 * (259 - c)), sa = 1 + o.sa / 100, te = o.te * 0.5;
+  for (let i = 0; i < n; i += 4) {
+    let r = d[i], g = d[i + 1], b = d[i + 2];
+    r = (r - 128) * f + 128 + br + te; g = (g - 128) * f + 128 + br; b = (b - 128) * f + 128 + br - te;
+    const y = 0.299 * r + 0.587 * g + 0.114 * b; r = y + (r - y) * sa; g = y + (g - y) * sa; b = y + (b - y) * sa;
+    d[i] = r < 0 ? 0 : r > 255 ? 255 : r; d[i + 1] = g < 0 ? 0 : g > 255 ? 255 : g; d[i + 2] = b < 0 ? 0 : b > 255 ? 255 : b;
+  } return img;
+}
+function blurImg(img, r) {
+  const { width: w, height: h, data } = img, n = w * h, P = [0, 1, 2, 3].map(() => new Float32Array(n));
+  for (let i = 0; i < n; i++) { const a = data[i * 4 + 3] / 255; P[0][i] = data[i * 4] * a; P[1][i] = data[i * 4 + 1] * a; P[2][i] = data[i * 4 + 2] * a; P[3][i] = a; }
+  const Q = P.map(p => { let q = p; for (let k = 0; k < 3; k++) q = BGXC.boxMean(q, w, h, Math.max(1, Math.round(r / 1.7))); return q; });
+  for (let i = 0; i < n; i++) { const a = Q[3][i]; data[i * 4 + 3] = a * 255; if (a > 0.001) { data[i * 4] = Q[0][i] / a; data[i * 4 + 1] = Q[1][i] / a; data[i * 4 + 2] = Q[2][i] / a; } } return img;
+}
+function adjRun() {
+  if (!ADJ) return; const o = { br: +$('#aBr').value, co: +$('#aCo').value, sa: +$('#aSa').value, te: +$('#aTe').value }, sh = +$('#aSh').value, bl = +$('#aBl').value;
+  let img = new ImageData(new Uint8ClampedArray(ADJ.base.data), ADJ.base.width, ADJ.base.height);
+  if (o.br || o.co || o.sa || o.te) adjustPixels(img, o); if (bl > 0) blurImg(img, bl); if (sh > 0) UPX.unsharp(img, sh, 1.2);
+  const c = mk(img.width, img.height); c.getContext('2d').putImageData(img, 0, 0); ADJ.L.cv = c; redraw();
+}
+function openAdjust() {
+  const L = selLayer(); if (!L || L.kind !== 'img') { toast('Pilih lapisan imej dahulu (teks/bentuk: gunakan sifatnya)', 1); return; }
+  const c = L.cv; ADJ = { L, orig: c, base: c.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, c.width, c.height) };
+  ['aBr', 'aCo', 'aSa', 'aTe', 'aSh', 'aBl'].forEach(i => $('#' + i).value = 0); show('mAdj');
+}
+let adjT = 0; ['aBr', 'aCo', 'aSa', 'aTe', 'aSh', 'aBl'].forEach(i => $('#' + i).oninput = () => { clearTimeout(adjT); adjT = setTimeout(adjRun, 30); });
+$('#aReset').onclick = () => { ['aBr', 'aCo', 'aSa', 'aTe', 'aSh', 'aBl'].forEach(i => $('#' + i).value = 0); adjRun(); };
+function baseOp(fn) { if (!ADJ) return; fn(ADJ.base); adjRun(); }
+$('#aGray').onclick = () => baseOp(img => { const d = img.data; for (let i = 0; i < d.length; i += 4) { const y = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; d[i] = d[i + 1] = d[i + 2] = y; } });
+$('#aInv').onclick = () => baseOp(img => { const d = img.data; for (let i = 0; i < d.length; i += 4) { d[i] = 255 - d[i]; d[i + 1] = 255 - d[i + 1]; d[i + 2] = 255 - d[i + 2]; } });
+$('#aAuto').onclick = () => baseOp(img => { const d = img.data, h = new Uint32Array(256); let cnt = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 8) { h[Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2])]++; cnt++; } let lo = 0, hi = 255, a = 0; for (; lo < 255; lo++) { a += h[lo]; if (a > cnt * 0.005) break; } a = 0; for (; hi > 0; hi--) { a += h[hi]; if (a > cnt * 0.005) break; } if (hi - lo < 20) return; const k = 255 / (hi - lo); for (let i = 0; i < d.length; i += 4) for (let j = 0; j < 3; j++) d[i + j] = clamp((d[i + j] - lo) * k, 0, 255); });
+$('#aOk').onclick = () => { if (ADJ) { ADJ = null; hide('mAdj'); refreshAll(); commit(); } };
+$('#aCancel').onclick = () => { if (ADJ) { ADJ.L.cv = ADJ.orig; ADJ = null; } hide('mAdj'); refreshAll(); };
+$('#bAdj').onclick = openAdjust;
+
+// ---------- tingkatkan kualiti ----------
+let EN = null, enT = 0;
+function enParams() { return { scale: +$('#eScale').value, sharp: +$('#eSharp').value, radius: +$('#eRad').value / 10, denoise: +$('#eDn').value, crisp: +$('#eCr').value }; }
+function enPreview() {
+  if (!EN) return; const p = enParams(), c = EN.L.cv, S0 = Math.min(120, c.width, c.height), sx = Math.max(0, (c.width - S0) >> 1), sy = Math.max(0, (c.height - S0) >> 1);
+  const crop = mk(S0, S0); crop.getContext('2d').drawImage(c, sx, sy, S0, S0, 0, 0, S0, S0);
+  const sc = Math.min(p.scale, 4), res = UPX.classic(crop, Object.assign({}, p, { scale: sc }));
+  for (const [id, src] of [['ePa', crop], ['ePb', res]]) { const t = $('#' + id), g = t.getContext('2d'); g.imageSmoothingEnabled = false; g.clearRect(0, 0, 240, 240); g.drawImage(src, 0, 0, src.width, src.height, 0, 0, 240, 240); }
+  const nw = Math.round(c.width * p.scale), nh = Math.round(c.height * p.scale), over = nw > 12000 || nh > 12000 || nw * nh > 80e6;
+  $('#eInfo').textContent = `${c.width}×${c.height} → ${nw}×${nh}px (${(nw * nh / 1e6).toFixed(1)} MP)` + (over ? ' — terlalu besar, kurangkan skala' : '') + '. Pratonton: 120px tengah, dibesarkan sama saiz.'; EN.over = over;
+}
+async function openEnhance() {
+  const L = selLayer(); if (!L || L.kind === 'shape') { toast('Pilih lapisan imej dahulu', 1); return; }
+  EN = { L }; show('mEnh'); $('#eProg').style.display = 'none'; enPreview();
+  AIX.status().then(s => { if (!EN) return; for (const [k, ok] of [['srFast', s.srFast], ['srHq', s.srHq]]) { const o = $('#eMode').querySelector(`[value=${k}]`); o.disabled = !ok; o.textContent = (k === 'srFast' ? 'AI cepat (Real-ESRGAN)' : 'AI kualiti tinggi (Real-ESRGAN x4plus)') + (ok ? '' : ' — model tiada'); } }).catch(() => {});
+}
+['eScale', 'eSharp', 'eRad', 'eDn', 'eCr', 'eMode'].forEach(i => $('#' + i).oninput = () => { clearTimeout(enT); enT = setTimeout(enPreview, 120); });
+$('#eCancel').onclick = () => { if (EN && EN.run) AIX.cancel(); else { EN = null; hide('mEnh'); } };
+$('#eOk').onclick = async () => {
+  if (!EN || EN.over) { toast('Skala terlalu besar', 1); return; } const L = EN.L, p = enParams(), mode = $('#eMode').value, old = L.cv; EN.run = true; $('#eOk').disabled = true; const pr = $('#eProg'); pr.style.display = ''; await tick();
+  try {
+    let out; if (mode === 'classic') out = UPX.classic(old, p);
+    else { out = await UPX.aiUpscale(old, mode, p.scale, (d, t, eta) => { pr.firstChild.style.width = (d / t * 100) + '%'; $('#eInfo').textContent = `AI: ${d}/${t} jubin · baki ≈ ${Math.round(eta)}s`; }); if (p.sharp || p.denoise || p.crisp) out = UPX.classic(out, Object.assign({}, p, { scale: 1 })); }
+    const k = out.width / old.width; L.cv = out; L.sx /= k; L.sy /= k; if (L.kind !== 'img') L.kind = 'img'; refreshAll(); commit(); toast(`Selesai: ${out.width}×${out.height}px`); EN = null; hide('mEnh');
+  } catch (e) { toast(e.message === 'Dibatalkan' ? 'Dibatalkan' : 'Gagal: ' + e.message, 1); }
+  if (EN) EN.run = false; $('#eOk').disabled = false;
+};
+$('#bEnh').onclick = openEnhance; $('#bTrim').onclick = trimLayer;
+
+// ---------- papan kekunci & butang ----------
+$$('#tools [data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool));
+$('#cFg').oninput = e => S.fg = e.target.value; $('#cBk').oninput = e => S.bk = e.target.value;
+$('#bSwap').onclick = () => { [S.fg, S.bk] = [S.bk, S.fg]; $('#cFg').value = S.fg; $('#cBk').value = S.bk; };
+$('#oSize').oninput = e => { S.size = +e.target.value; $('#oSizeN').value = S.size; }; $('#oSizeN').oninput = e => { S.size = clamp(+e.target.value || 1, 1, 2000); $('#oSize').value = Math.min(400, S.size); };
+$('#oHard').oninput = e => S.hard = e.target.value / 100; $('#oFlow').oninput = e => S.flow = e.target.value / 100;
+$('#oShape').onchange = e => S.shape = e.target.value; $('#oSFill').oninput = e => S.sfill = e.target.value; $('#oSStroke').oninput = e => S.sstroke = e.target.value; $('#oSW').oninput = e => S.sw = +e.target.value || 0;
+$('#bUndo').onclick = undo; $('#bRedo').onclick = redo; $('#bZin').onclick = () => zoomAt(1.25); $('#bZout').onclick = () => zoomAt(0.8); $('#bFit').onclick = fitView;
+$('#bZ100').onclick = () => { const r = stage.getBoundingClientRect(); const c = toDoc(r.width / 2, r.height / 2); S.z = 1; S.px = r.width / 2 - c.x; S.py = r.height / 2 - c.y; zlbl(); redraw(); };
+$('#lyUp').onclick = () => moveLayer(1); $('#lyDown').onclick = () => moveLayer(-1); $('#lyDup').onclick = dupLayer; $('#lyMerge').onclick = mergeDown; $('#lyFlipH').onclick = flipH; $('#lyDel').onclick = delLayer;
+addEventListener('keydown', e => {
+  const tg = e.target.tagName; if (/INPUT|TEXTAREA|SELECT/.test(tg) && !(e.ctrlKey || e.metaKey)) return; if (document.querySelector('.modal.show')) { if (e.key === 'Escape') document.querySelector('.modal.show:not(#welcome)')?.classList.remove('show'); return; }
+  const k = e.key.toLowerCase(), ctl = e.ctrlKey || e.metaKey;
+  if (e.code === 'Space') { S.space = true; e.preventDefault(); stage.style.cursor = 'grab'; return; }
+  if (ctl && k === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; } if (ctl && k === 'y') { e.preventDefault(); redo(); return; }
+  if (ctl && k === 'j') { e.preventDefault(); dupLayer(); return; } if (ctl && k === 's') { e.preventDefault(); $('#bSave').click(); return; } if (ctl && k === 'e') { e.preventDefault(); $('#bExport').click(); return; }
+  if (ctl && k === '0') { e.preventDefault(); fitView(); return; } if (ctl && (k === '=' || k === '+')) { e.preventDefault(); zoomAt(1.25); return; } if (ctl && k === '-') { e.preventDefault(); zoomAt(0.8); return; }
+  if (ctl) return;
+  const m = { v: 'move', h: 'hand', b: 'brush', e: 'eraser', t: 'text', u: 'shape', i: 'eyedrop' }[k]; if (m) { setTool(m); return; }
+  if (k === 'x') $('#bSwap').click();
+  if (k === '[') { S.size = Math.max(1, Math.round(S.size * 0.85 - 1)); $('#oSizeN').value = S.size; $('#oSize').value = Math.min(400, S.size); } if (k === ']') { S.size = Math.round(S.size * 1.18 + 1); $('#oSizeN').value = S.size; $('#oSize').value = Math.min(400, S.size); }
+  if (e.key === 'Delete' || e.key === 'Backspace') { delLayer(); return; }
+  const L = selLayer(); if (L && !L.lock && e.key.startsWith('Arrow')) { e.preventDefault(); const st = e.shiftKey ? 10 : 1; if (e.key === 'ArrowLeft') L.x -= st; if (e.key === 'ArrowRight') L.x += st; if (e.key === 'ArrowUp') L.y -= st; if (e.key === 'ArrowDown') L.y += st; redraw(); commitSoon(); }
+});
+addEventListener('keyup', e => { if (e.code === 'Space') { S.space = false; setTool(S.tool); } });
+if (!window.proApp) addEventListener('beforeunload', e => { if (S.w && S.hist.length > 1) { e.preventDefault(); e.returnValue = ''; } });
+
+// ===== UI Buang Latar Pintar =====
+const BX = { on: false };
+const bxCv = $('#bxCv'), bxSt = $('#bxStage');
+const BXMAX = 900;
+let bxT = 0, bxBusy = false, bxAgain = false, bxDrag = null, bxHold = false;
+function bxOpts() { return { tol: +$('#bxTol').value, protect: +$('#bxPro').value / 100, holes: $('#bxHol').value, keepLargest: $('#bxLg').checked, picked: BX.picked, bgClusters: BX.useC, marks: BX.hasMarks ? BX.marks : null, prior: BX.prior || null }; }
+function bxMsg(t) { const m = $('#bxMsg'); m.textContent = t || ''; m.style.display = t ? 'block' : 'none'; }
+function bxOpen(L) {
+  if (!L || L.kind === 'shape') { toast('Pilih lapisan imej dahulu', 1); return; }
+  const c = L.cv, full = c.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, c.width, c.height), k = Math.min(1, BXMAX / Math.max(c.width, c.height)), ww = Math.max(2, Math.round(c.width * k)), wh = Math.max(2, Math.round(c.height * k));
+  const wc = mk(ww, wh), wx = wc.getContext('2d', { willReadFrequently: true }); wx.imageSmoothingQuality = 'high'; wx.drawImage(c, 0, 0, ww, wh);
+  Object.assign(BX, { on: true, L, full, wc, work: { w: ww, h: wh, data: wx.getImageData(0, 0, ww, wh).data }, marks: new Uint8Array(ww * wh), hasMarks: false, picked: [], useC: null, prior: null, res: mk(ww, wh), mk: mk(ww, wh), tool: 'fg', z: 1, px: 0, py: 0, label: null, alpha: null, info: null });
+  show('bx'); bxSize(); bxFit(); bxSetTool('fg'); $('#bxSw').innerHTML = ''; bxMsg('Memproses…'); setTimeout(bxRun, 30);
+}
+function bxSize() { const r = bxSt.getBoundingClientRect(), d = devicePixelRatio || 1; bxCv.width = Math.round(r.width * d); bxCv.height = Math.round(r.height * d); bxDraw(); }
+new ResizeObserver(() => BX.on && bxSize()).observe(bxSt);
+function bxFit() { const r = bxSt.getBoundingClientRect(), { w, h } = BX.work; BX.z = Math.min((r.width - 20) / w, (r.height - 20) / h); BX.px = (r.width - w * BX.z) / 2; BX.py = (r.height - h * BX.z) / 2; }
+function bxDraw() {
+  if (!BX.on) return; const x = bxCv.getContext('2d'), d = devicePixelRatio || 1, { w, h } = BX.work; x.setTransform(1, 0, 0, 1, 0, 0); x.fillStyle = '#101114'; x.fillRect(0, 0, bxCv.width, bxCv.height);
+  x.setTransform(d, 0, 0, d, 0, 0); x.save(); x.translate(BX.px, BX.py); x.scale(BX.z, BX.z); x.imageSmoothingEnabled = BX.z < 1;
+  const pv = $('#bxPv').value;
+  if (bxHold) x.drawImage(BX.wc, 0, 0);
+  else {
+    if (pv === 'chk') { x.fillStyle = chkPat(x); x.save(); x.scale(1 / BX.z, 1 / BX.z); x.fillStyle = chkPat(x); x.fillRect(0, 0, w * BX.z, h * BX.z); x.restore(); } else if (pv !== 'mask') { x.fillStyle = { white: '#fff', black: '#000', green: '#00b140' }[pv]; x.fillRect(0, 0, w, h); }
+    if (pv === 'mask' && BX.maskC) { x.drawImage(BX.maskC, 0, 0); } else x.drawImage(BX.res, 0, 0);
+  }
+  if (!bxHold) { x.globalAlpha = 0.55; x.drawImage(BX.mk, 0, 0); x.globalAlpha = 1; }
+  x.restore();
+  if (BX.hover && ['fg', 'bg', 'erase'].includes(BX.tool)) { x.strokeStyle = '#fff'; x.beginPath(); x.arc(BX.hover.x, BX.hover.y, +$('#bxBr').value * BX.z, 0, 7); x.stroke(); }
+}
+function bxSetTool(t) { BX.tool = t; $$('#bxTools [data-bt]').forEach(b => b.classList.toggle('on', b.dataset.bt === t)); bxSt.style.cursor = t === 'pan' ? 'grab' : t === 'pick' ? 'crosshair' : 'none'; }
+$$('#bxTools [data-bt]').forEach(b => b.onclick = () => bxSetTool(b.dataset.bt));
+function bxPaint(p, val) {
+  const { w, h } = BX.work, r = +$('#bxBr').value, mg = BX.mk.getContext('2d');
+  const x0 = Math.max(0, Math.floor(p.x - r)), x1 = Math.min(w - 1, Math.ceil(p.x + r)), y0 = Math.max(0, Math.floor(p.y - r)), y1 = Math.min(h - 1, Math.ceil(p.y + r));
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if ((x - p.x) ** 2 + (y - p.y) ** 2 <= r * r) BX.marks[y * w + x] = val;
+  if (val) { mg.globalCompositeOperation = 'source-over'; mg.fillStyle = val === 1 ? '#19e05a' : '#ff3040'; } else { mg.globalCompositeOperation = 'destination-out'; mg.fillStyle = '#000'; }
+  mg.beginPath(); mg.arc(p.x, p.y, r, 0, 7); mg.fill(); mg.globalCompositeOperation = 'source-over';
+}
+const bxPos = e => { const r = bxSt.getBoundingClientRect(); const sx = e.clientX - r.left, sy = e.clientY - r.top; return { sx, sy, x: (sx - BX.px) / BX.z, y: (sy - BX.py) / BX.z }; };
+bxSt.addEventListener('pointerdown', e => {
+  bxSt.setPointerCapture(e.pointerId); const p = bxPos(e);
+  if (e.button === 1 || BX.tool === 'pan' || S.space) { bxDrag = { pan: 1, sx: p.sx, sy: p.sy, px: BX.px, py: BX.py }; return; }
+  if (BX.tool === 'pick') { const i = (Math.floor(p.y) * BX.work.w + Math.floor(p.x)) * 4, d = BX.work.data; if (i >= 0 && i < d.length) { BX.picked.push([d[i], d[i + 1], d[i + 2]]); bxSchedule(); } return; }
+  const val = BX.tool === 'fg' ? 1 : BX.tool === 'bg' ? 2 : 0; bxDrag = { val, last: p }; bxPaint(p, val); BX.hasMarks = true; bxDraw();
+});
+bxSt.addEventListener('pointermove', e => {
+  const p = bxPos(e); BX.hover = { x: p.sx, y: p.sy };
+  if (bxDrag) { if (bxDrag.pan) { BX.px = bxDrag.px + p.sx - bxDrag.sx; BX.py = bxDrag.py + p.sy - bxDrag.sy; } else { const a = bxDrag.last, n = Math.max(1, Math.ceil(Math.hypot(p.x - a.x, p.y - a.y) / 3)); for (let i = 1; i <= n; i++) bxPaint({ x: a.x + (p.x - a.x) * i / n, y: a.y + (p.y - a.y) * i / n }, bxDrag.val); bxDrag.last = p; } }
+  bxDraw();
+});
+bxSt.addEventListener('pointerup', () => { const d = bxDrag; bxDrag = null; if (d && !d.pan) bxSchedule(150); });
+bxSt.addEventListener('pointerleave', () => { BX.hover = null; bxDraw(); });
+bxSt.addEventListener('wheel', e => { e.preventDefault(); const p = bxPos(e), f = Math.exp(-e.deltaY * 0.0015), nz = clamp(BX.z * f, 0.1, 40), k = nz / BX.z; BX.px = p.sx - (p.sx - BX.px) * k; BX.py = p.sy - (p.sy - BX.py) * k; BX.z = nz; bxDraw(); }, { passive: false });
+function bxSchedule(ms = 220) { clearTimeout(bxT); bxMsg('Memproses…'); bxT = setTimeout(bxRun, ms); }
+async function bxRun() {
+  if (!BX.on) return; if (bxBusy) { bxAgain = true; return; } bxBusy = true; await tick();
+  try {
+    const { w, h } = BX.work, o = bxOpts(), hard = $('#bxHard').checked, r = BGXC.segment(BX.work, o); BX.info = r.info;
+    if (!BX.useC && r.info.clusters) bxSwatches(r.info.clusters);
+    if (r.info.error) { bxMsg(r.info.error); $('#bxInfo').textContent = r.info.error; BX.label = null; }
+    else {
+      BX.label = r.label; const al = BGXC.matte(BX.work, r.label, w, h, { band: 3, soft: +$('#bxSoft').value / 100, shrink: +$('#bxShr').value, hard }); BX.alpha = al;
+      const img = BGXC.compose(BX.work, al, {}); BX.res.getContext('2d').putImageData(img, 0, 0);
+      const mi = new ImageData(w, h); for (let i = 0; i < w * h; i++) { const v = al[i] * 255; mi.data[i * 4] = mi.data[i * 4 + 1] = mi.data[i * 4 + 2] = v; mi.data[i * 4 + 3] = 255; } BX.maskC = mk(w, h); BX.maskC.getContext('2d').putImageData(mi, 0, 0);
+      bxMsg(''); $('#bxInfo').innerHTML = `Subjek ≈ ${(r.info.fgFrac * 100).toFixed(0)}% imej. ` + (r.info.holes ? `${r.info.holes} lubang dalaman dikesan. ` : '') + 'Kurang tepat? Lukis berus <b>hijau</b> (kekal) / <b>merah</b> (buang).';
+    }
+  } catch (e) { bxMsg('Ralat: ' + e.message); console.error(e); }
+  bxBusy = false; bxDraw(); if (bxAgain) { bxAgain = false; bxSchedule(10); }
+}
+function bxSwatches(cl) {
+  const box = $('#bxSw'); box.innerHTML = ''; BX.useC = cl.map((c, i) => c.used ? i : -1).filter(i => i >= 0);
+  cl.forEach((c, i) => { const s = document.createElement('span'); s.className = 'sw' + (c.used ? '' : ' off'); s.innerHTML = `<i style="background:rgb(${c.rgb.join(',')})"></i>${Math.round(c.share * 100)}%`; s.onclick = () => { const on = BX.useC.includes(i); BX.useC = on ? BX.useC.filter(k => k !== i) : [...BX.useC, i]; if (!BX.useC.length) BX.useC = [i]; $$('#bxSw .sw').forEach((el, j) => el.classList.toggle('off', !BX.useC.includes(j))); bxSchedule(60); }; box.appendChild(s); });
+  BX.picked.forEach(p => { const s = document.createElement('span'); s.className = 'sw'; s.title = 'Warna dipilih — klik untuk buang'; s.innerHTML = `<i style="background:rgb(${p.join(',')})"></i>pilih`; s.onclick = () => { BX.picked = BX.picked.filter(q => q !== p); s.remove(); bxSchedule(60); }; box.appendChild(s); });
+}
+['bxTol', 'bxPro', 'bxSoft', 'bxShr', 'bxHol', 'bxLg', 'bxHard'].forEach(i => $('#' + i).oninput = () => bxSchedule(250));
+$('#bxPv').onchange = bxDraw;
+$('#bxOrig').onpointerdown = () => { bxHold = true; bxDraw(); }; addEventListener('pointerup', () => { if (bxHold) { bxHold = false; bxDraw(); } });
+$('#bxClear').onclick = () => { BX.marks.fill(0); BX.mk.getContext('2d').clearRect(0, 0, BX.mk.width, BX.mk.height); BX.hasMarks = false; BX.picked = []; BX.useC = null; BX.prior = null; bxSchedule(20); };
+const BXP = { foto: { tol: 9, pro: 100, soft: 70, shr: 1, hard: false, hol: 'keep' }, produk: { tol: 7, pro: 110, soft: 40, shr: 0, hard: false, hol: 'keep' }, grafik: { tol: 6, pro: 100, soft: 0, shr: 0, hard: true, hol: 'remove' } };
+$$('#bxSide [data-pre]').forEach(b => b.onclick = () => { const p = BXP[b.dataset.pre]; $('#bxTol').value = p.tol; $('#bxPro').value = p.pro; $('#bxSoft').value = p.soft; $('#bxShr').value = p.shr; $('#bxHard').checked = p.hard; $('#bxHol').value = p.hol; bxSchedule(20); });
+$('#bxAi').onclick = async () => {
+  try {
+    bxMsg('Memeriksa model AI…'); const st = await AIX.status(); if (!st.bg) { bxMsg(''); toast('AI tidak tersedia: perlukan fail model (vendor/ort + models/u2netp.onnx) dan dibuka melalui http(s). Mod pintar biasa sudah berfungsi tanpa AI.', 1); return; }
+    bxMsg('AI menganalisis…'); await tick(); const sess = await AIX.getSession('bg'), SZ = 320, sc = mk(SZ, SZ), sx = sc.getContext('2d'); sx.imageSmoothingQuality = 'high'; sx.drawImage(BX.wc, 0, 0, SZ, SZ);
+    const d = sx.getImageData(0, 0, SZ, SZ).data, pl = SZ * SZ, inp = new Float32Array(3 * pl); let mx = 1; for (let i = 0; i < pl; i++) mx = Math.max(mx, d[i * 4], d[i * 4 + 1], d[i * 4 + 2]);
+    const mean = [0.485, 0.456, 0.406], sd = [0.229, 0.224, 0.225]; for (let i = 0; i < pl; i++) for (let c = 0; c < 3; c++) inp[c * pl + i] = (d[i * 4 + c] / mx - mean[c]) / sd[c];
+    const res = await sess.infer(inp, SZ, SZ), p = res.data; let lo = 1e9, hi = -1e9; for (let i = 0; i < pl; i++) { lo = Math.min(lo, p[i]); hi = Math.max(hi, p[i]); }
+    const mi = new ImageData(SZ, SZ); for (let i = 0; i < pl; i++) { const v = (p[i] - lo) / ((hi - lo) || 1) * 255; mi.data[i * 4] = mi.data[i * 4 + 1] = mi.data[i * 4 + 2] = v; mi.data[i * 4 + 3] = 255; }
+    const mc = mk(SZ, SZ); mc.getContext('2d').putImageData(mi, 0, 0); const { w, h } = BX.work, up = mk(w, h), ux = up.getContext('2d'); ux.imageSmoothingQuality = 'high'; ux.drawImage(mc, 0, 0, w, h);
+    const ud = ux.getImageData(0, 0, w, h).data; BX.prior = new Float32Array(w * h); for (let i = 0; i < w * h; i++) BX.prior[i] = ud[i * 4] / 255; bxSchedule(10); toast('AI digunakan sebagai petunjuk — tepi tetap dikira oleh enjin warna');
+  } catch (e) { bxMsg(''); toast('AI gagal: ' + e.message, 1); }
+};
+function bxClose() { BX.on = false; hide('bx'); bxMsg(''); }
+$('#bxCancel').onclick = bxClose;
+$('#bxOk').onclick = async () => {
+  if (!BX.label) { toast('Belum ada hasil untuk digunakan', 1); return; } const L = BX.L; $('#bxOk').disabled = true; bxMsg('Menjana resolusi penuh…'); await tick();
+  try {
+    const o = bxOpts(), hard = $('#bxHard').checked; const full = { w: BX.full.width, h: BX.full.height, data: BX.full.data };
+    const al = BGXC.matte(full, BX.label, BX.work.w, BX.work.h, { band: 3, soft: +$('#bxSoft').value / 100, shrink: +$('#bxShr').value * (full.w / BX.work.w), hard });
+    const img = BGXC.compose(full, al, {}), c = mk(img.width, img.height); c.getContext('2d').putImageData(img, 0, 0);
+    if ($('#bxKeep').checked) { const cp = snapLayer(L); cp.id = UID++; cp.name = L.name + ' (asal)'; cp.vis = false; S.layers.splice(S.layers.indexOf(L), 0, cp); }
+    L.cv = c; L.name = L.name.replace(/ \(tanpa latar\)$/, '') + ' (tanpa latar)'; if (L.kind !== 'img') L.kind = 'img'; bxClose(); refreshAll(); commit(); toast('Latar dibuang');
+  } catch (e) { toast('Gagal: ' + e.message, 1); }
+  $('#bxOk').disabled = false; bxMsg('');
+};
+$('#bBg').onclick = () => bxOpen(selLayer());
+
+setTool('move'); undoBtns(); sizeCanvas();
+FONTS.forEach(() => 0);
+addEventListener('resize', () => { if (S.w) redraw(); });
+
+const APP_VERSION = (document.querySelector('meta[name=app-version]') || {}).content || '1.0.0';
+$('#sSave').textContent = 'v' + APP_VERSION;
+if (window.proApp) {
+  $('#bUpd').style.display = '';
+  $('#bUpd').onclick = async () => {
+    const i = await proApp.info();
+    $('#uInfo').innerHTML = `Versi app sedang berjalan: <b>v${APP_VERSION}</b><br>Versi dalam .exe: <b>${i.build}</b> (shell ${i.shell})<br>Kemas kini aktif: <b>${i.update ? 'v' + i.update : 'tiada (guna versi dalam .exe)'}</b>` + (i.updateIgnored ? `<br><span style="color:var(--no)">${i.updateIgnored}</span>` : '') + `<br>Folder: <span style="color:var(--mu);font-size:11px">${i.updateDir}</span>`;
+    $('#uRevert').disabled = !i.update && !i.updateIgnored; show('mUpd');
+  };
+  $('#uApply').onclick = async () => { const r = await proApp.applyUpdate(); if (r && r.error) toast(r.error, 1); };
+  $('#uRevert').onclick = async () => { if (confirm('Padam kemas kini dan kembali ke versi dalam .exe? Projek anda tidak dipadam.')) { const r = await proApp.revert(); if (r && r.error) toast(r.error, 1); } };
+}
+
+</script></body></html>
